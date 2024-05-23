@@ -9,6 +9,7 @@ const { PORT } = process.env
 app.post('/event', (req, res) => {
     const evento = req.body
     axios.post('http://localhost:1000/event', evento)
+    axios.post('http://localhost:2000/event', evento)
     res.end()
 })
 
