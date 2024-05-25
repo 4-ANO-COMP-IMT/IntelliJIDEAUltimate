@@ -4,7 +4,29 @@ import express from 'express'
 import axios from 'axios'
 import {validateHeaderName} from "node:http";
 const app = express()
+const {Pool} = require('pg')
+
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'LP2',
+    password: 'A0013734',
+    port: 5432,
+})
 app.use(express.json())
+
+
+// pool.query(`
+// DROP TABLE IF EXISTS users CASCADE;
+// CREATE TABLE users (
+//  user_id SERIAL PRIMARY KEY,
+//  user_name TEXT,
+//  user_password TEXT,
+//  user_is_admin BOOLEAN
+// )
+// `)
+
+
 
 const { PORT } = process.env
 
@@ -30,16 +52,24 @@ interface UserValidatedEvent{
 let fake_banco: Record<string, string> = {
     felipe:"1234"
 }
-let validate = function (username: string, password: string): boolean{
+
+let validate = async function (username: string, password: string): Promise<boolean>{
     //acessa o banco de dados para validar
-    return fake_banco[username] === password;
-};
+    try {
+        let result = await pool.query('SELECT user_password FROM users WHERE user_name = $1', [username])
+        let user_password = result.rows[0].user_password
+        return user_password === password
+    }catch (e){
+        console.log(e)
+        return false
+    }
+}
 
 
-app.post('/validate', function(req, res){
+app.post('/validate', async function(req, res){
     const validationRequest : ValidationRequest = req.body
 
-    let isValid : boolean = validate(validationRequest.username,validationRequest.password)
+    let isValid : boolean = await validate(validationRequest.username,validationRequest.password)
     let auth_token : string = "asdygahskgdhkasgdhsadh"
     if (isValid){
         let userValidatedEvent : UserValidatedEvent = {auth_token:auth_token,validation_timestamp:""}
