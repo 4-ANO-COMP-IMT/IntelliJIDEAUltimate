@@ -6,19 +6,19 @@ import {validateHeaderName} from "node:http";
 const app = express()
 const {Pool} = require('pg')
 
+const { PORT, USER, PASSWORD } = process.env
+
 const pool = new Pool({
-    user: 'postgres',
+    user: USER,
     host: 'localhost',
     database: 'AuthService',
-    password: 'A0013734',
+    password: PASSWORD,
     port: 5432,
 })
 
 
 
 app.use(express.json())
-
-const { PORT } = process.env
 
 
 //externo

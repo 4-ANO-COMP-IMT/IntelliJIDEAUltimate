@@ -7,16 +7,29 @@ import axios from 'axios'
 import {validateHeaderName} from "node:http";
 const app = express()
 app.use(express.json())
-const { PORT } = process.env
+const { PORT, USER, PASSWORD } = process.env
 const {Pool} = require('pg')
 
 const pool = new Pool({
-    user: 'postgres',
+    user: USER,
     host: 'localhost',
     database: 'RegisterUserService',
-    password: 'A0013734',
+    password: PASSWORD,
     port: 5432,
 })
+
+/*  *** CRIAÇÃO DA TABELA
+
+DROP TABLE IF EXISTS users CASCADE;
+CREATE table users (
+	user_id SERIAL PRIMARY KEY,
+	user_name TEXT,
+	user_password TEXT,
+	user_is_admin BOOLEAN
+);
+
+*/
+
 app.use(express.json())
 // endregion
 
