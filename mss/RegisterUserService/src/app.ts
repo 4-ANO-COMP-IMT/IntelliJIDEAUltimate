@@ -1,3 +1,5 @@
+
+// region setup
 import dotenv from 'dotenv'
 dotenv.config()
 import express from 'express'
@@ -5,26 +7,30 @@ import axios from 'axios'
 import {validateHeaderName} from "node:http";
 const app = express()
 app.use(express.json())
+const { PORT } = process.env
 const {Pool} = require('pg')
 
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'LP2',
+    database: 'RegisterUserService',
     password: 'A0013734',
     port: 5432,
 })
 app.use(express.json())
+// endregion
 
-const AddUserToDatabase = async (username: string, password: string) => {
-    await pool.query('INSERT INTO users (user_name, user_password, user_is_admin) VALUES ($1, $2, $3)', [username, password, false])
-    return pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
+
+// region external interfaces
+
+interface UserValidatedEvent{
+    auth_token: string,
+    validation_timestamp:string,
 }
 
+// endregion
 
-
-
-const { PORT } = process.env
+// region internal interfaces
 
 interface RegisterRequest {
     new_username: string,
@@ -45,12 +51,25 @@ interface UserRegisteredEvent {
     isAdmin: boolean,
 }
 
+// endregion
+
+// region internal functions
+
+/**
+ * @deprecated This function is deprecated. Use `AddUserToDatabase` instead.
+ */
 let CreateUser = (username: string, password: string): User => {
     return {username: username, password: password, id: 1, isAdmin: false}
 }
 
+const AddUserToDatabase = async (username: string, password: string) => {
+    await pool.query('INSERT INTO users (user_name, user_password, user_is_admin) VALUES ($1, $2, $3)', [username, password, false])
+    return pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
+}
 
+// endregion
 
+// region post
 app.post('/register', function(req, res){
     const registerRequest : RegisterRequest = req.body
     let user : User = CreateUser(registerRequest.new_username,registerRequest.new_password)
@@ -65,10 +84,16 @@ app.post('/register', function(req, res){
     res.end()
 });
 
+// endregion
 
+//region event
 
-let events: Record<string, Function> = {
-    "userRegisteredEvent":(userRegisteredEvent: UserRegisteredEvent)=>{
+let events: Record<string, (arg:any)=>Promise<any>> = {
+    "userValidatedSuccessfulEvent": async (userValidatedEvent:UserValidatedEvent)=>{
+        console.log("novo usuario autenticou " + userValidatedEvent.auth_token)
+    },
+    "userRegisteredEvent":async (userRegisteredEvent:UserRegisteredEvent) =>{
+        console.log(`novo usuario registrado ${userRegisteredEvent.username}`)
     }
 }
 
@@ -76,14 +101,22 @@ interface Event{
     payload:string
     eventType:string
 }
-app.post('/event', (req, res) => {
+
+app.post('/event',  async (req, res) => {
     let {payload,eventType}:Event = req.body;
     let event = events[eventType];
     if(event){
-        event(payload);
+        try {
+            await event(payload);
+        }
+        catch (e) {
+            console.log(`error treating event: ${eventType}, message: ${e}`)
+            res.status(500).json({ error: `error treating event: ${eventType}, message: ${e}`})
+        }
     }
 
 });
 
+// endregion
 
 app.listen(PORT, () => console.log(`AuthService. Port: ${PORT}.`))

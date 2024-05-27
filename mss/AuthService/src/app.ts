@@ -9,28 +9,32 @@ const {Pool} = require('pg')
 const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
-    database: 'LP2',
+    database: 'AuthService',
     password: 'A0013734',
     port: 5432,
 })
+
+
+
 app.use(express.json())
-
-
-// pool.query(`
-// DROP TABLE IF EXISTS users CASCADE;
-// CREATE TABLE users (
-//  user_id SERIAL PRIMARY KEY,
-//  user_name TEXT,
-//  user_password TEXT,
-//  user_is_admin BOOLEAN
-// )
-// `)
-
-
 
 const { PORT } = process.env
 
-//
+
+//externo
+const AddUserToDatabase = async (username: string, password: string) => {
+    return pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
+}
+
+
+interface UserRegisteredEvent {
+    username: string,
+    password: string,
+    id: number,
+    isAdmin: boolean,
+}
+
+// interno
 interface ValidationRequest {
     username: string,
     password: string,
@@ -55,38 +59,50 @@ let fake_banco: Record<string, string> = {
 
 let validate = async function (username: string, password: string): Promise<boolean>{
     //acessa o banco de dados para validar
-    try {
-        let result = await pool.query('SELECT user_password FROM users WHERE user_name = $1', [username])
-        let user_password = result.rows[0].user_password
-        return user_password === password
-    }catch (e){
-        console.log(e)
-        return false
-    }
+
+    let result = await pool.query('SELECT user_password FROM users WHERE user_name = $1', [username])
+    let user_password = result.rows[0].user_password
+    return user_password === password
+}
+
+let createToken = async function (username: string, password: string): Promise<string>{
+    return "token teste"
 }
 
 
 app.post('/validate', async function(req, res){
-    const validationRequest : ValidationRequest = req.body
+    const validationRequest: ValidationRequest = req.body
 
-    let isValid : boolean = await validate(validationRequest.username,validationRequest.password)
-    let auth_token : string = "asdygahskgdhkasgdhsadh"
-    if (isValid){
-        let userValidatedEvent : UserValidatedEvent = {auth_token:auth_token,validation_timestamp:""}
-        axios.post('http://localhost:10000/event', {payload: userValidatedEvent,eventType: "userValidatedSuccessfulEvent"}).catch(()=>console.log("erro no barramento"))
-        let validationSuccessfulResponse:ValidationSuccessfulResponse = {auth_token:auth_token}
-        res.status(200).json(validationSuccessfulResponse)
-    }else{
-        res.status(400).send('User validation failed')
+    try {
+        let isValid: boolean = await validate(validationRequest.username, validationRequest.password)
+        let auth_token: string = await createToken(validationRequest.username, validationRequest.password)
+
+        if (isValid) {
+            let userValidatedEvent: UserValidatedEvent = { auth_token: auth_token, validation_timestamp: new Date().toISOString() }
+            axios.post('http://localhost:10000/event', { payload: userValidatedEvent, eventType: "userValidatedSuccessfulEvent" })
+                .catch(() => console.log("erro no barramento"))
+
+            let validationSuccessfulResponse: ValidationSuccessfulResponse = { auth_token: auth_token }
+            res.status(200).json(validationSuccessfulResponse)
+        }
+        else {
+            res.status(400).json({ error: 'User validation failed' })
+        }
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({ error: 'Internal server error' })
     }
-    res.end()
 });
 
 
 
-let events: Record<string, Function> = {
-    "userValidatedSuccessfulEvent":(userValidatedEvent:UserValidatedEvent)=>{
+let events: Record<string, (arg:any)=>Promise<any>> = {
+    "userValidatedSuccessfulEvent": async (userValidatedEvent:UserValidatedEvent)=>{
         console.log("novo usuario autenticou " + userValidatedEvent.auth_token)
+    },
+    "userRegisteredEvent":async (userRegisteredEvent:UserRegisteredEvent) =>{
+        await pool.query('INSERT INTO users (user_id, user_name, user_password, user_is_admin) VALUES ($1, $2, $3, $4)', [userRegisteredEvent.id, userRegisteredEvent.username, userRegisteredEvent.password, userRegisteredEvent.isAdmin])
+        console.log(`novo usuario registrado ${userRegisteredEvent.username}`)
     }
 }
 
@@ -94,11 +110,17 @@ interface Event{
     payload:string
     eventType:string
 }
-app.post('/event', (req, res) => {
+app.post('/event',  async (req, res) => {
     let {payload,eventType}:Event = req.body;
     let event = events[eventType];
     if(event){
-        event(payload);
+        try {
+            await event(payload);
+        }
+        catch (e) {
+            console.log(`error treating event: ${eventType}, message: ${e}`)
+            res.status(500).json({ error: `error treating event: ${eventType}, message: ${e}`})
+        }
     }
 
 });
