@@ -6,19 +6,20 @@ import {validateHeaderName} from "node:http";
 const app = express()
 const {Pool} = require('pg')
 
+const { PORT, USER, PASSWORD } = process.env
+const SERVICE_NAME = "AuthService"
+
 const pool = new Pool({
-    user: 'postgres',
+    user: USER,
     host: 'localhost',
     database: 'AuthService',
-    password: 'A0013734',
+    password: PASSWORD,
     port: 5432,
 })
 
 
 
 app.use(express.json())
-
-const { PORT } = process.env
 
 
 //externo
@@ -79,7 +80,7 @@ app.post('/validate', async function(req, res){
 
         if (isValid) {
             let userValidatedEvent: UserValidatedEvent = { auth_token: auth_token, validation_timestamp: new Date().toISOString() }
-            axios.post('http://localhost:10000/event', { payload: userValidatedEvent, eventType: "userValidatedSuccessfulEvent" })
+            axios.post('http://localhost:10000/event', { service_name: SERVICE_NAME, payload: userValidatedEvent, event_type: "userValidatedSuccessfulEvent" })
                 .catch(() => console.log("erro no barramento"))
 
             let validationSuccessfulResponse: ValidationSuccessfulResponse = { auth_token: auth_token }
@@ -108,20 +109,21 @@ let events: Record<string, (arg:any)=>Promise<any>> = {
 
 interface Event{
     payload:string
-    eventType:string
+    event_type:string
 }
 app.post('/event',  async (req, res) => {
-    let {payload,eventType}:Event = req.body;
-    let event = events[eventType];
+    let {payload,event_type}:Event = req.body;
+    let event = events[event_type];
     if(event){
         try {
             await event(payload);
         }
         catch (e) {
-            console.log(`error treating event: ${eventType}, message: ${e}`)
-            res.status(500).json({ error: `error treating event: ${eventType}, message: ${e}`})
+            console.log(`error treating event: ${event_type}, message: ${e}`)
+            res.status(500).json({ error: `error treating event: ${event_type}, message: ${e}`})
         }
     }
+    res.end()
 
 });
 
