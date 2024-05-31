@@ -29,6 +29,9 @@ CREATE table users (
 	user_is_admin BOOLEAN
 );
 
+pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, session_token TEXT, session_timestamp TIMESTAMP, user_id INTEGER, FOREIGN KEY (user_id) REFERENCES users(user_id))').catch((e: string) => console.log(e))
+
+
 */
 
 app.use(express.json())
@@ -38,8 +41,10 @@ app.use(express.json())
 // region external interfaces
 
 interface UserValidatedEvent{
-    auth_token: string,
+    session_id:number,
+    session_token: string,
     validation_timestamp:string,
+    user_id:number
 }
 
 // endregion
@@ -100,7 +105,8 @@ app.post('/register', async function(req, res){
 
 let events: Record<string, (arg:any)=>Promise<any>> = {
     "userValidatedSuccessfulEvent": async (userValidatedEvent:UserValidatedEvent)=>{
-        console.log("novo usuario autenticou " + userValidatedEvent.auth_token)
+        await pool.query('INSERT INTO sessions (session_id, session_token, session_timestamp, user_id) VALUES ($1, $2, $3, $4)', [userValidatedEvent.session_id, userValidatedEvent.session_token, userValidatedEvent.validation_timestamp, userValidatedEvent.user_id] )
+        console.log("novo usuario autenticou " + userValidatedEvent.session_token)
     },
     "userRegisteredEvent":async (userRegisteredEvent:UserRegisteredEvent) =>{
         console.log(`novo usuario registrado ${userRegisteredEvent.username}`)
