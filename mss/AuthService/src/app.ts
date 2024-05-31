@@ -1,8 +1,9 @@
 import dotenv from 'dotenv'
-dotenv.config()
 import express from 'express'
 import axios from 'axios'
-import {validateHeaderName} from "node:http";
+import uuid from 'uuid'
+
+dotenv.config()
 const app = express()
 const {Pool} = require('pg')
 
@@ -17,16 +18,13 @@ const pool = new Pool({
     port: 5432,
 })
 
+pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, session_token TEXT, session_timestamp TIMESTAMP, user_id INTEGER, FOREIGN KEY (user_id) REFERENCES users(user_id))').catch((e: string) => console.log(e))
 
 
 app.use(express.json())
 
 
 //externo
-const AddUserToDatabase = async (username: string, password: string) => {
-    return pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
-}
-
 
 interface UserRegisteredEvent {
     username: string,
@@ -43,19 +41,29 @@ interface ValidationRequest {
 
 //
 interface ValidationSuccessfulResponse {
-    auth_token: string
+    session_token: string
 }
 
 
 
 interface UserValidatedEvent{
-    auth_token: string,
+    session_id:number,
+    session_token: string,
     validation_timestamp:string,
+    user_id:number
 }
 
-//
-let fake_banco: Record<string, string> = {
-    felipe:"1234"
+let generateSession = async function (username: string): Promise<UserValidatedEvent>{
+    let session_token = uuid.v4()
+    let result = await pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
+    let user_id = result.rows[0].user_id
+    let insertResult = await pool.query('INSERT INTO sessions (session_token, session_timestamp, user_id) VALUES ($1, $2, $3) RETURNING *', [session_token, new Date().toISOString(), user_id])
+    return {
+        session_id: insertResult.rows[0].session_id,
+        session_token: insertResult.rows[0].session_token,
+        validation_timestamp: insertResult.rows[0].validation_timestamp,
+        user_id: insertResult.rows[0].user_id
+    }
 }
 
 let validate = async function (username: string, password: string): Promise<boolean>{
@@ -66,24 +74,19 @@ let validate = async function (username: string, password: string): Promise<bool
     return user_password === password
 }
 
-let createToken = async function (username: string, password: string): Promise<string>{
-    return "token teste"
-}
-
 
 app.post('/validate', async function(req, res){
     const validationRequest: ValidationRequest = req.body
 
     try {
         let isValid: boolean = await validate(validationRequest.username, validationRequest.password)
-        let auth_token: string = await createToken(validationRequest.username, validationRequest.password)
 
         if (isValid) {
-            let userValidatedEvent: UserValidatedEvent = { auth_token: auth_token, validation_timestamp: new Date().toISOString() }
+            let userValidatedEvent: UserValidatedEvent = await generateSession(validationRequest.username)
             axios.post('http://localhost:10000/event', { service_name: SERVICE_NAME, payload: userValidatedEvent, event_type: "userValidatedSuccessfulEvent" })
                 .catch(() => console.log("erro no barramento"))
 
-            let validationSuccessfulResponse: ValidationSuccessfulResponse = { auth_token: auth_token }
+            let validationSuccessfulResponse: ValidationSuccessfulResponse = { session_token: userValidatedEvent.session_token}
             res.status(200).json(validationSuccessfulResponse)
         }
         else {
@@ -95,11 +98,11 @@ app.post('/validate', async function(req, res){
     }
 });
 
-
+axios.post('http://localhost:10000/service-discovery', { service_name: SERVICE_NAME, host: 'localhost', port: PORT }).catch(() => console.log("erro no barramento"))
 
 let events: Record<string, (arg:any)=>Promise<any>> = {
     "userValidatedSuccessfulEvent": async (userValidatedEvent:UserValidatedEvent)=>{
-        console.log("novo usuario autenticou " + userValidatedEvent.auth_token)
+        console.log("novo usuario autenticou " + userValidatedEvent.session_token)
     },
     "userRegisteredEvent":async (userRegisteredEvent:UserRegisteredEvent) =>{
         await pool.query('INSERT INTO users (user_id, user_name, user_password, user_is_admin) VALUES ($1, $2, $3, $4)', [userRegisteredEvent.id, userRegisteredEvent.username, userRegisteredEvent.password, userRegisteredEvent.isAdmin])
@@ -126,6 +129,15 @@ app.post('/event',  async (req, res) => {
     res.end()
 
 });
+const OnStartup = async (n : number) => {
+    axios.post('http://localhost:10000/lost-events-recovery', { service_name: SERVICE_NAME }).catch(() => console.log("erro no barramento")).catch(e => {
+        //sleep for 5 seconds
+        if(n > 0){
+            setTimeout(() => OnStartup(n - 1), 5000)
+        }
+    })
+}
 
-
-app.listen(PORT, () => console.log(`AuthService. Port: ${PORT}.`))
+OnStartup(10).then(() => {
+    app.listen(PORT, () => console.log(`AuthService. Port: ${PORT}.`))
+})
