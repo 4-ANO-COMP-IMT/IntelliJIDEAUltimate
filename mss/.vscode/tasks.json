@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "iniciarTodosMss",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "Barramento",
+                "Auth",
+                "Register"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Barramento",
+            "type": "shell",
+            "command": "cd ./EventBus  | npm run start:dev",
+            "presentation": {
+                "panel": "dedicated",
+                "group": "mss"
+            }
+        },
+        {
+            "label": "Auth",
+            "type": "shell",
+            "command": "cd ./AuthService  | npm run start:dev",
+            "presentation": {
+                "panel": "dedicated",
+                "group": "mss"
+            }
+        },
+        {
+            "label": "Register",
+            "type": "shell",
+            "command": "cd ./RegisterUserService  | npm run start:dev",
+            "presentation": {
+                "panel": "dedicated",
+                "group": "mss"
+            }
+        }
+    ]
+}
