@@ -1,23 +1,22 @@
-
 // region setup
-import dotenv from 'dotenv'
-dotenv.config()
-import express from 'express'
-import axios from 'axios'
-import {validateHeaderName} from "node:http";
-const app = express()
-app.use(express.json())
-const { PORT, USER, PASSWORD } = process.env
-const SERVICE_NAME = "RegisterUserService"
-const {Pool} = require('pg')
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import axios from "axios";
+import { validateHeaderName } from "node:http";
+const app = express();
+app.use(express.json());
+const { PORT, USER, PASSWORD } = process.env;
+const SERVICE_NAME = "RegisterUserService";
+const { Pool } = require("pg");
 
 const pool = new Pool({
-    user: USER,
-    host: 'localhost',
-    database: 'RegisterUserService',
-    password: PASSWORD,
-    port: 5432,
-})
+  user: USER,
+  host: "localhost",
+  database: "RegisterUserService",
+  password: PASSWORD,
+  port: 5432,
+});
 
 /*  *** CRIAÇÃO DA TABELA
 
@@ -34,11 +33,62 @@ pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, 
 
 */
 
-app.use(express.json())
+app.use(express.json());
 // endregion
 
-
 // region external interfaces
+const myService = {
+  service_name: "RegisterUserService",
+  host: "localhost",
+  port: 2000,
+};
+const sleep = function (ms:number){
+    return new Promise(resolve =>setTimeout(resolve,ms))
+}
+
+const startup = async function (attempts: number) {
+  let discoveryOk = false
+  let lostEventsOk = false;
+  let this_attemps = attempts
+  while (attempts > 0 && !discoveryOk) {
+    
+
+        axios
+            .post("http://localhost:10000/service-discovery", myService)
+            .then(() => {
+              discoveryOk = true;
+              console.log("EventBus acknowledged this service");
+            }).catch(   ()=> console.log(attempts+ " attempts for discovery"))
+        await sleep(800)
+      
+  
+    attempts--;
+  }
+  
+  attempts =this_attemps
+
+  while (attempts > 0 && !lostEventsOk) {
+    console.log(attempts)
+        
+        axios
+          .post("http://localhost:10000/lost-events-recovery", { "service_name":SERVICE_NAME })
+          .then(() => {
+            lostEventsOk = true;
+            console.log("LostEvents Recovered");
+          }).catch(()=> console.log(attempts+ " attempts for lost events"))
+          await sleep(800)
+    
+    
+
+    attempts--;
+  }
+
+  if (attempts < 1) {
+    console.log("No response from Eventbus. Ending service...");
+  }
+};
+
+startup(10);
 
 interface UserValidatedEvent{
     session_id:number,
@@ -52,22 +102,22 @@ interface UserValidatedEvent{
 // region internal interfaces
 
 interface RegisterRequest {
-    new_username: string,
-    new_password: string,
+  new_username: string;
+  new_password: string;
 }
 
 interface User {
-    user_name: string,
-    user_password: string,
-    user_id: number,
-    user_is_admin: boolean,
+  user_name: string;
+  user_password: string;
+  user_id: number;
+  user_is_admin: boolean;
 }
 
 interface UserRegisteredEvent {
-    username: string,
-    password: string,
-    id: number,
-    isAdmin: boolean,
+  username: string;
+  password: string;
+  id: number;
+  isAdmin: boolean;
 }
 
 // endregion
@@ -75,33 +125,55 @@ interface UserRegisteredEvent {
 // region internal functions
 
 const AddUserToDatabase = async (username: string, password: string) => {
-    const res = await pool.query('INSERT INTO users (user_name, user_password, user_is_admin) VALUES ($1, $2, $3) RETURNING *', [username, password, false])
-    return res
-}
+  const res = await pool.query(
+    "INSERT INTO users (user_name, user_password, user_is_admin) VALUES ($1, $2, $3) RETURNING *",
+    [username, password, false]
+  );
+  return res;
+};
 
 // endregion
 
 // region post
-app.post('/register', async function(req, res){
-    const registerRequest : RegisterRequest = req.body
-
-    const r = await AddUserToDatabase(registerRequest.new_username, registerRequest.new_password)
-    try {
-    const user:User = r.rows[0]
-    console.log("Usuário registrado: ", user.user_name + " Com o id: " + user.user_id)
-    let userRegisteredEvent : UserRegisteredEvent = {username: user.user_name, password: user.user_password, id: user.user_id, isAdmin: user.user_is_admin}
-    axios.post('http://localhost:10000/event', {service_name: SERVICE_NAME, payload: userRegisteredEvent,event_type: "userRegisteredEvent"}).catch(()=>console.log("erro no barramento"))
-    res.status(200).send(userRegisteredEvent)
-    } catch (e) {
-        console.log('Caught Exception:\n' + e)
-    }
-    res.end()
-    
+app.post("/register", async function (req, res) {
+  const registerRequest: RegisterRequest = req.body;
+  console.log(
+    registerRequest.new_username + " " + registerRequest.new_password
+  );
+  const r = await AddUserToDatabase(
+    registerRequest.new_username,
+    registerRequest.new_password
+  );
+  try {
+    const user: User = r.rows[0];
+    console.log(
+      "Usuário registrado: ",
+      user.user_name + " Com o id: " + user.user_id
+    );
+    let userRegisteredEvent: UserRegisteredEvent = {
+      username: user.user_name,
+      password: user.user_password,
+      id: user.user_id,
+      isAdmin: user.user_is_admin,
+    };
+    axios
+      .post("http://localhost:10000/event", {
+        service_name: SERVICE_NAME,
+        payload: userRegisteredEvent,
+        event_type: "userRegisteredEvent",
+      })
+      .catch(() => console.log("erro no barramento"));
+    res.status(200).send(userRegisteredEvent);
+  } catch (e) {
+    console.log("Caught Exception:\n" + e);
+  }
+  res.end();
 });
 
 // endregion
 
 //region event
+
 
 let events: Record<string, (arg:any)=>Promise<any>> = {
     "userValidatedSuccessfulEvent": async (userValidatedEvent:UserValidatedEvent)=>{
@@ -118,22 +190,22 @@ interface Event{
     event_type:string
 }
 
-app.post('/event',  async (req, res) => {
-    let {payload,event_type}:Event = req.body;
-    let event = events[event_type];
-    if(event){
-        try {
-            await event(payload);
-        }
-        catch (e) {
-            console.log(`error treating event: ${event_type}, message: ${e}`)
-            res.status(500).json({ error: `error treating event: ${event_type}, message: ${e}`})
-        }
+app.post("/event", async (req, res) => {
+  let { payload, event_type }: Event = req.body;
+  let event = events[event_type];
+  if (event) {
+    try {
+      await event(payload);
+    } catch (e) {
+      console.log(`error treating event: ${event_type}, message: ${e}`);
+      res
+        .status(500)
+        .json({ error: `error treating event: ${event_type}, message: ${e}` });
     }
-    res.end()
-
+  }
+  res.end();
 });
 
 // endregion
 
-app.listen(PORT, () => console.log(`RegisterUser service. Port: ${PORT}.`))
+app.listen(PORT, () => console.log(`RegisterUser service. Port: ${PORT}.`));
