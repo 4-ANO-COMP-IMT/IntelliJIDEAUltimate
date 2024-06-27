@@ -5,6 +5,8 @@ import axios from 'axios'
 import {validateHeaderName} from "node:http";
 const app = express()
 app.use(express.json())
+const cors = require('cors');
+app.use(cors());
 
 const { PORT } = process.env
 
