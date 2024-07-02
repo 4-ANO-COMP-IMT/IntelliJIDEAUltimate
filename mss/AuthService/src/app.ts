@@ -22,6 +22,8 @@ pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, 
 
 
 app.use(express.json())
+const cors = require('cors');
+app.use(cors());
 
 
 //externo
