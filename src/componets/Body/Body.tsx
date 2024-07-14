@@ -1,6 +1,7 @@
 import React from 'react';
 import ImageFrame from './ImageFrame/ImageFrame';
-import { Container } from 'react-bootstrap';
+import { Button, ButtonGroup, ButtonToolbar, Container, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import Toolbar from './toolbar';
 
 const Body: React.FC = () => {
     return (
@@ -9,16 +10,19 @@ const Body: React.FC = () => {
                 {/* Filter section content */}
             </div>
             <div className="tools">
-                {/* Tools content */}
+                <Toolbar/>
             </div>
             
             <Container fluid style={{ height: '100vh', padding: 0 }}>
-                    <ImageFrame />
+                <ImageFrame />
             </Container>
 
-            <p>Body conten: {}</p>
-            <div className="button-bar">
+            <div className="button-bar d-flex justify-content-center">
                 {/* Button bar content */}
+                <Button variant="primary">Button 1</Button>
+                <Button variant="secondary">Button 2</Button>
+                <Button variant="success">Button 3</Button>
+                {/* Add more buttons as needed */}
             </div>
         </div>
     );

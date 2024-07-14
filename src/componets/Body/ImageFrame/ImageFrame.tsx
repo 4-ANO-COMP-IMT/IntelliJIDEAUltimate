@@ -60,7 +60,7 @@ const ImageFrame: React.FC = () => {
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', backgroundColor:'#5c949f' }}>
-        aaaa: {dimensions.width} x {dimensions.height}
+        {/* aaaa: {dimensions.width} x {dimensions.height} */}
       <Stage width={dimensions.width} height={dimensions.height}>
         <Layer>
           <Rect

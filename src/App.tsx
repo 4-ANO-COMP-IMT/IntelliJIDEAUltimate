@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Header from './componets/Header';
-import Body from './componets/Body';
+import Body from './componets/Body/Body';
 
 const App: React.FC = () => {
   return (
