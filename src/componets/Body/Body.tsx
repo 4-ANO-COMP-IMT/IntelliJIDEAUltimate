@@ -1,16 +1,21 @@
 import React from 'react';
 import ImageFrame from './ImageFrame/ImageFrame';
-import { Button, ButtonGroup, ButtonToolbar, Container, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Button, Container, Dropdown, DropdownButton, Form, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
 import Toolbar from './toolbar';
+import FilterDropdown from './FilterDropDown';
+import FilterCollapse from './filters/FilterCollapse';
 
 const Body: React.FC = () => {
     return (
         <div className="container">
             <div className="filter-section">
-                {/* Filter section content */}
+                <FilterDropdown />
+                <FilterCollapse />
             </div>
+
+
             <div className="tools">
-                <Toolbar/>
+                <Toolbar />
             </div>
             
             <Container fluid style={{ height: '100vh', padding: 0 }}>
@@ -18,7 +23,6 @@ const Body: React.FC = () => {
             </Container>
 
             <div className="button-bar d-flex justify-content-center">
-                {/* Button bar content */}
                 <Button variant="primary">Button 1</Button>
                 <Button variant="secondary">Button 2</Button>
                 <Button variant="success">Button 3</Button>
