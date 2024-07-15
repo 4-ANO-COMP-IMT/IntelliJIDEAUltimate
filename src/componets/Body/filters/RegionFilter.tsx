@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, Row, Col, Spinner, Card } from 'react-bootstrap';
+import { Form, Button, Row, Col, Spinner, Card, ListGroup } from 'react-bootstrap';
 import { MapContainer, TileLayer, Polygon, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
@@ -8,7 +8,7 @@ import L from 'leaflet';
 const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
     const [selectedRegion, setSelectedRegion] = useState<any[]>([]);
     const [placeName, setPlaceName] = useState<string>('');
-    const [foundPlaceName, setFoundPlaceName] = useState<string>('');
+    const [foundPlaces, setFoundPlaces] = useState<any[]>([]);
     const [center, setCenter] = useState<[number, number]>([0, 0]);
     const [zoom, setZoom] = useState<number>(2);
     const [isPolygon, setIsPolygon] = useState<boolean>(false);
@@ -37,33 +37,35 @@ const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
             });
 
             if (response.data.length > 0) {
-                const location = response.data[0];
-
-                setFoundPlaceName(location.display_name);
-
-                if (location.geojson && location.geojson.type === 'Polygon') {
-                    const coordinates = location.geojson.coordinates[0].map((coord: [number, number]) => ({
-                        lat: coord[1],
-                        lng: coord[0],
-                    }));
-                    setSelectedRegion(coordinates);
-                    setCenter([parseFloat(location.lat), parseFloat(location.lon)]);
-                    setZoom(10);
-                    setIsPolygon(true);
-                } else {
-                    setSelectedRegion([]);
-                    setCenter([parseFloat(location.lat), parseFloat(location.lon)]);
-                    setZoom(15);
-                    setIsPolygon(false);
-                }
+                setFoundPlaces(response.data);
             } else {
                 alert('Local não encontrado');
+                setFoundPlaces([]);
             }
         } catch (error) {
             console.error('Erro ao buscar o local:', error);
             alert('Erro ao buscar o local');
+            setFoundPlaces([]);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const selectPlace = (place: any) => {
+        if (place.geojson && place.geojson.type === 'Polygon') {
+            const coordinates = place.geojson.coordinates[0].map((coord: [number, number]) => ({
+                lat: coord[1],
+                lng: coord[0],
+            }));
+            setSelectedRegion(coordinates);
+            setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+            setZoom(10);
+            setIsPolygon(true);
+        } else {
+            setSelectedRegion([]);
+            setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+            setZoom(15);
+            setIsPolygon(false);
         }
     };
 
@@ -79,23 +81,6 @@ const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
                 <Form.Group controlId="regionFilter">
                     <Form.Label>Região</Form.Label>
                     <Row>
-                        <Col md={4}>
-                            <Form.Control
-                                type="text"
-                                placeholder="Nome do lugar (País, Estado, etc.)"
-                                value={placeName}
-                                onChange={(e) => setPlaceName(e.target.value)}
-                                className="mb-2"
-                            />
-                            <Button variant="primary" onClick={handleSearch} className="mb-2" disabled={loading}>
-                                {loading ? <Spinner animation="border" size="sm" /> : 'Buscar'}
-                            </Button>
-                            {foundPlaceName && (
-                                <Form.Text className="text-muted">
-                                    Resultado: {foundPlaceName}
-                                </Form.Text>
-                            )}
-                        </Col>
                         <Col md={8}>
                             <div style={{ height: '400px', width: '100%' }}>
                                 <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
@@ -115,6 +100,35 @@ const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
                                     <MapEvents />
                                 </MapContainer>
                             </div>
+                        </Col>
+                        <Col md={4}>
+                            <Form.Control
+                                type="text"
+                                placeholder="Nome do lugar (País, Estado, etc.)"
+                                value={placeName}
+                                onChange={(e) => setPlaceName(e.target.value)}
+                                className="mb-2"
+                            />
+                            <Button variant="primary" onClick={handleSearch} className="mb-2" disabled={loading}>
+                                {loading ? <Spinner animation="border" size="sm" /> : 'Buscar'}
+                            </Button>
+                            {foundPlaces.length > 0 && (
+                                <ListGroup>
+                                    {foundPlaces.map((place, index) => (
+                                        <ListGroup.Item key={index}>
+                                            {place.display_name}
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                className="ml-2"
+                                                onClick={() => selectPlace(place)}
+                                            >
+                                                Selecionar
+                                            </Button>
+                                        </ListGroup.Item>
+                                    ))}
+                                </ListGroup>
+                            )}
                         </Col>
                     </Row>
                 </Form.Group>
