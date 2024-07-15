@@ -9,7 +9,6 @@ const Body: React.FC = () => {
     return (
         <div className="container">
             <div className="filter-section">
-                <FilterDropdown />
                 <FilterCollapse />
             </div>
 
