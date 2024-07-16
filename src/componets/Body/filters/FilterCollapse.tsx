@@ -27,9 +27,9 @@ const FilterCollapse: React.FC = () => {
                     <Card>
                         <Card.Body>
                             <Form>
+                                <RegionFilter isOpen={open} />
                                 <DateFilter />
                                 <ClassFilter />
-                                <RegionFilter isOpen={open} />
                                 <TagsFilter />
                                 <FlagFilter />
                                 <TypeFilter />
