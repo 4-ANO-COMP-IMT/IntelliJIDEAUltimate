@@ -3,7 +3,7 @@ import { Button, Collapse, Form, Card } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import DateFilter from './DateFilter';
 import ClassFilter from './ClassFilter';
-import RegionFilter from './RegionFilter';
+import RegionFilter from './RegionMap/RegionFilter';
 import TagsFilter from './TagsFilter';
 import FlagFilter from './FlagFilter';
 import TypeFilter from './TypeFilter';

@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-const MapView: React.FC<{ center: [number, number]; zoom: number; selectedRegion: any[]; isPolygon: boolean; }> = ({ center, zoom, selectedRegion, isPolygon }) => {
+const MapView: React.FC<{ center: [number, number]; zoom: number; selectedRegion: any[]; isPolygon: boolean; isOpen: boolean; }> = ({ center, zoom, selectedRegion, isPolygon, isOpen }) => {
     const MapEvents = () => {
         const map = useMap();
+
+        useEffect(() => {
+            map.invalidateSize();
+        }, [isOpen]);
+
         map.setView(center, zoom);
         return null;
     };
