@@ -10,14 +10,43 @@ fi
 diretorio_inicial=$1
 arquivo_saida=$2
 
+# Extensões de imagem a serem ignoradas
+extensoes_imagem=("jpg" "jpeg" "png" "gif" "bmp" "tiff" "webp")
+
+# Função para verificar se um arquivo é uma imagem
+is_imagem() {
+  local arquivo=$1
+  local extensao="${arquivo##*.}"
+  for img_ext in "${extensoes_imagem[@]}"; do
+    if [ "$extensao" = "$img_ext" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 # Função recursiva para processar o diretório
 processar_diretorio() {
   local diretorio=$1
 
   # Itera sobre cada item no diretório
   for item in "$diretorio"/*; do
+    # Ignora o diretório node_modules
+    if [ -d "$item" ] && [ "$(basename "$item")" = "node_modules" ]; then
+      continue
+    fi
+
+    # Ignora o arquivo package-lock.json
+    if [ -f "$item" ] && [ "$(basename "$item")" = "package-lock.json" ]; then
+      continue
+    fi
+
     # Verifica se é um arquivo
     if [ -f "$item" ]; then
+      # Verifica se o arquivo é uma imagem e ignora se for
+      if is_imagem "$item"; then
+        continue
+      fi
       # Imprime o caminho relativo do arquivo e seu conteúdo no arquivo de saída
       caminho_relativo=$(realpath --relative-to="$diretorio_inicial" "$item")
       echo "Arquivo: $caminho_relativo" >> "$arquivo_saida"

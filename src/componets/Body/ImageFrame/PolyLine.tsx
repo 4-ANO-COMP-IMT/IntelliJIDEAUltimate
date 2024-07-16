@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Layer, Line, Circle } from 'react-konva';
-import { KonvaEventObject } from 'konva/lib/Node';
+import React, { useState } from "react";
+import { Layer, Line, Circle } from "react-konva";
+import { KonvaEventObject } from "konva/lib/Node";
 
 interface Point {
     x: number;
@@ -31,19 +31,18 @@ const PolyLine: React.FC<PolyLineProps> = ({ points }) => {
     const calculateMidPoint = (pointA: Point, pointB: Point): Point => {
         return {
             x: (pointA.x + pointB.x) / 2,
-            y: (pointA.y + pointB.y) / 2,
+            y: (pointA.y + pointB.y) / 2
         };
     };
 
     return (
         <>
             <Line
-                points={polyPoints.flatMap(p => [p.x, p.y])}
+                points={polyPoints.flatMap((p) => [p.x, p.y])}
                 stroke="red"
-                
-
                 strokeWidth={2}
             />
+            s
             {polyPoints.map((point, index) => (
                 <Circle
                     key={index}
@@ -58,7 +57,10 @@ const PolyLine: React.FC<PolyLineProps> = ({ points }) => {
             ))}
             {polyPoints.map((point, index) => {
                 if (index === polyPoints.length - 1) return null;
-                const midPoint = calculateMidPoint(point, polyPoints[index + 1]);
+                const midPoint = calculateMidPoint(
+                    point,
+                    polyPoints[index + 1]
+                );
                 return (
                     <Circle
                         key={`mid-${index}`}
@@ -67,7 +69,12 @@ const PolyLine: React.FC<PolyLineProps> = ({ points }) => {
                         radius={5}
                         fill="green"
                         draggable
-                        onDragEnd={(e) => handleInsertPoint(index + 1, { x: e.target.x(), y: e.target.y() })}
+                        onDragEnd={(e) =>
+                            handleInsertPoint(index + 1, {
+                                x: e.target.x(),
+                                y: e.target.y()
+                            })
+                        }
                     />
                 );
             })}
