@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 import Toolbar from "./Toolbar";
-import ImageFrame from "./ImageFrame/ImageFrame";
+import ImageFrame from "./ImageFrame";
 import ButtonBar from "./ButtonBar";
 
 const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
