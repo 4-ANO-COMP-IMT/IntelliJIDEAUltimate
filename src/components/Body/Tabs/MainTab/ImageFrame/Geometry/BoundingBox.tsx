@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layer, Rect, Circle } from "react-konva";
+import { Rect, Circle } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 
 interface RectProps {

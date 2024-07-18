@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layer, Line, Circle } from "react-konva";
+import { Line, Circle } from "react-konva";
 import { KonvaEventObject } from "konva/lib/Node";
 
 interface Point {
@@ -42,7 +42,6 @@ const PolyLine: React.FC<PolyLineProps> = ({ points }) => {
 				stroke="red"
 				strokeWidth={2}
 			/>
-			s
 			{polyPoints.map((point, index) => (
 				<Circle
 					key={index}
