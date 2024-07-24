@@ -3,7 +3,7 @@ import { Col, Container, Row } from "react-bootstrap";
 import Toolbar from "./Toolbar";
 import ImageFrame from "./ImageFrame";
 import ButtonBar from "./ButtonBar";
-import ClassToggleList from "./ClassToggleList";
+import ClassToggleList from "./ClassToggleList/ClassToggleList";
 
 const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
 	const [selectedTool, setSelectedTool] = useState<string>("");
@@ -28,15 +28,23 @@ const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
 		<>
 			<Toolbar onToolChange={handleToolChange} isCreating={isCreating} />
 			<Container fluid style={{ padding: 0 }} ref={containerRef}>
-				<Row noGutters style={{ height: "75vh" }}>
-					<Col md={9}>
-						<ImageFrame
-							selectedTool={selectedTool}
-							isOpen={isOpen}
-						/>
+				<Row
+					noGutters
+					className="d-flex flex-column flex-lg-row"
+					style={{ height: "75vh" }}
+				>
+					<Col lg={9} md={12} style={{ overflowY: "auto" }}>
+						<div style={{ height: "500px" }}>
+							<ImageFrame
+								selectedTool={selectedTool}
+								isOpen={isOpen}
+							/>
+						</div>
 					</Col>
-					<Col md={3}>
-						<ClassToggleList />
+					<Col lg={3} md={12} style={{ overflowY: "auto" }}>
+						<div style={{ height: "500px" }}>
+							<ClassToggleList />
+						</div>
 					</Col>
 				</Row>
 			</Container>

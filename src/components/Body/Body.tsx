@@ -7,7 +7,7 @@ const Body: React.FC = () => {
 	const [key, setKey] = useState<string>("main");
 
 	return (
-		<div className="container">
+		<div className="container" style={{ marginTop: "5px" }}>
 			<Tabs
 				defaultActiveKey="main"
 				id="uncontrolled-tab-example"

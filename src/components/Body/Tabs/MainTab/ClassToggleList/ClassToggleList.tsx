@@ -1,12 +1,6 @@
 import React, { useState } from "react";
-import {
-	Form,
-	Button,
-	ToggleButton,
-	ToggleButtonGroup,
-	Card
-} from "react-bootstrap";
-import { FaStar, FaRegStar, FaCheckCircle, FaCircle } from "react-icons/fa";
+import { Form } from "react-bootstrap";
+import ClassCard from "./ClassCard";
 
 const classList = [
 	{ id: 0, label: "Lombada" },
@@ -116,38 +110,14 @@ const ClassToggleList: React.FC = () => {
 					const cls = classList.find((c) => c.id === favId);
 					if (!cls) return null;
 					return (
-						<Card key={cls.id} className="mb-2 w-100">
-							<Card.Body className="d-flex justify-content-between align-items-center">
-								<div className="d-flex flex-column">
-									<span>{cls.label}</span>
-									<small>ID: {cls.id}</small>
-								</div>
-								<div className="d-flex align-items-center">
-									<Button
-										variant="link"
-										onClick={(e) => {
-											e.stopPropagation();
-											toggleFavorite(cls.id);
-										}}
-									>
-										<FaStar color="gold" />
-									</Button>
-									<Button
-										variant="link"
-										onClick={(e) => {
-											e.stopPropagation();
-											handleSelectClass(cls.id);
-										}}
-									>
-										{selectedClass === cls.id ? (
-											<FaCheckCircle color="green" />
-										) : (
-											<FaCircle color="gray" />
-										)}
-									</Button>
-								</div>
-							</Card.Body>
-						</Card>
+						<ClassCard
+							key={cls.id}
+							cls={cls}
+							isFavorite={true}
+							isSelected={selectedClass === cls.id}
+							onFavoriteToggle={toggleFavorite}
+							onSelectToggle={handleSelectClass}
+						/>
 					);
 				})}
 			</div>
@@ -158,42 +128,14 @@ const ClassToggleList: React.FC = () => {
 			<h5>Todas as Classes</h5>
 			<div>
 				{filteredClasses.map((cls) => (
-					<Card key={cls.id} className="mb-2 w-100">
-						<Card.Body className="d-flex justify-content-between align-items-center">
-							<div className="d-flex flex-column">
-								<span>{cls.label}</span>
-								<small>ID: {cls.id}</small>
-							</div>
-							<div className="d-flex align-items-center">
-								<Button
-									variant="link"
-									onClick={(e) => {
-										e.stopPropagation();
-										toggleFavorite(cls.id);
-									}}
-								>
-									{favoriteClasses.includes(cls.id) ? (
-										<FaStar color="gold" />
-									) : (
-										<FaRegStar />
-									)}
-								</Button>
-								<Button
-									variant="link"
-									onClick={(e) => {
-										e.stopPropagation();
-										handleSelectClass(cls.id);
-									}}
-								>
-									{selectedClass === cls.id ? (
-										<FaCheckCircle color="green" />
-									) : (
-										<FaCircle color="gray" />
-									)}
-								</Button>
-							</div>
-						</Card.Body>
-					</Card>
+					<ClassCard
+						key={cls.id}
+						cls={cls}
+						isFavorite={favoriteClasses.includes(cls.id)}
+						isSelected={selectedClass === cls.id}
+						onFavoriteToggle={toggleFavorite}
+						onSelectToggle={handleSelectClass}
+					/>
 				))}
 			</div>
 		</div>

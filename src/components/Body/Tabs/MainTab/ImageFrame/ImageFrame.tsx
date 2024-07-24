@@ -1,19 +1,8 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import { Stage, Layer, Rect } from "react-konva";
 import Geometry from "./Geometry/Geometry";
-import { useDrawingTools } from "./Tools/useDrawingTools";
-
-interface Point {
-	x: number;
-	y: number;
-}
-
-interface RectProps {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
+import useDrawingTools from "./../../../../../hooks/useDrawingTools";
+import { Point, RectProps } from "./../../../../../hooks/types";
 
 interface GeometryItem {
 	type: "polyline" | "rectangle";
@@ -35,7 +24,6 @@ const ImageFrame: React.FC<ImageFrameProps> = ({ selectedTool, isOpen }) => {
 		isCreating,
 		currentPoints,
 		currentRect,
-		setCurrentRect,
 		handleStageMouseDown,
 		handleStageMouseMove,
 		handleStageMouseUp
