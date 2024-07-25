@@ -1,0 +1,1696 @@
+Conteúdo dos arquivos em './src/':
+===========================================
+Arquivo: components/App.tsx
+import React from "react";
+import Header from "./Header/Header";
+import Body from "./Body/Body";
+
+const App: React.FC = () => {
+  return (
+    <>
+      <Header />
+      <Body />
+    </>
+  );
+};
+
+export default App;
+
+
+Arquivo: components/Body/Body.tsx
+import React, { useState } from "react";
+import { Container, Tab, Tabs } from "react-bootstrap";
+import MainTab from "./Tabs/MainTab/MainTab";
+import FilterTab from "./Tabs/FilterTab/FilterTab";
+
+const Body: React.FC = () => {
+  const [key, setKey] = useState<string>("main");
+
+  return (
+    <Container style={{ marginTop: "5px" }}>
+      <Tabs
+        defaultActiveKey="main"
+        id="uncontrolled-tab-example"
+        className="mb-3"
+        activeKey={key}
+        onSelect={(k: string | null) => setKey(k || "")}
+      >
+        <Tab eventKey="main" title="Main">
+          <MainTab isOpen={key === "main"} />
+        </Tab>
+        <Tab eventKey="filter" title="Filter">
+          <FilterTab isOpen={key === "filter"} />
+        </Tab>
+      </Tabs>
+    </Container>
+  );
+};
+
+export default Body;
+
+
+Arquivo: components/Body/Tabs/FilterTab/ClassFilter.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const classOptions = [
+	{ value: 1, label: "Classe 1" },
+	{ value: 2, label: "Classe 2" },
+	{ value: 3, label: "Classe 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const ClassFilter: React.FC = () => {
+	const [selectedClasses, setSelectedClasses] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="classFilter">
+			<Form.Label>Classe</Form.Label>
+			<Select
+				isMulti
+				options={classOptions}
+				value={selectedClasses}
+				onChange={(newValue, actionMeta) =>
+					setSelectedClasses(Array.from(newValue))
+				}
+				placeholder="Selecione as classes"
+			/>
+		</Form.Group>
+	);
+};
+
+export default ClassFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/DateFilter.tsx
+import React, { useState } from "react";
+import { Form, Row, Col } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const DateFilter: React.FC = () => {
+	const [startDate, setStartDate] = useState<Date | null>(null);
+	const [endDate, setEndDate] = useState<Date | null>(null);
+
+	return (
+		<Form.Group controlId="dateFilter">
+			<Form.Label>Data</Form.Label>
+			<Row>
+				<Col>
+					<Form.Label>Início</Form.Label>
+					<DatePicker
+						selected={startDate}
+						onChange={(date) => setStartDate(date)}
+						className="form-control"
+						placeholderText="Data de Início"
+					/>
+				</Col>
+				<Col>
+					<Form.Label>Fim</Form.Label>
+					<DatePicker
+						selected={endDate}
+						onChange={(date) => setEndDate(date)}
+						className="form-control"
+						placeholderText="Data de Fim"
+					/>
+				</Col>
+			</Row>
+		</Form.Group>
+	);
+};
+
+export default DateFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/FilterTab.tsx
+import React from "react";
+import { Card, Form, Tab } from "react-bootstrap";
+import RegionFilter from "./RegionMap/RegionFilter";
+import DateFilter from "./DateFilter";
+import ClassFilter from "./ClassFilter";
+import FlagFilter from "./FlagFilter";
+import TagsFilter from "./TagsFilter";
+import TypeFilter from "./TypeFilter";
+
+const FilterTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	return (
+		<>
+			<div id="example-collapse-text">
+				<Card>
+					<Card.Body>
+						<Form>
+							<RegionFilter isOpen={isOpen} />
+							<DateFilter />
+							<ClassFilter />
+							<TagsFilter />
+							<FlagFilter />
+							<TypeFilter />
+						</Form>
+					</Card.Body>
+				</Card>
+			</div>
+		</>
+	);
+};
+
+export default FilterTab;
+
+
+Arquivo: components/Body/Tabs/FilterTab/FlagFilter.tsx
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const FlagFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="flagFilter">
+			<Form.Label>Flag</Form.Label>
+			<Form.Check type="checkbox" label="Ativar flag" />
+		</Form.Group>
+	);
+};
+
+export default FlagFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/MapView.tsx
+import React, { useEffect } from "react";
+import {
+	MapContainer,
+	TileLayer,
+	Polygon,
+	Marker,
+	useMap
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+const MapView: React.FC<{
+	center: [number, number];
+	zoom: number;
+	selectedRegion: any[];
+	isPolygon: boolean;
+	isOpen: boolean;
+}> = ({ center, zoom, selectedRegion, isPolygon, isOpen }) => {
+	const MapEvents = () => {
+		const map = useMap();
+
+		useEffect(() => {
+			map.invalidateSize();
+		}, [isOpen]);
+
+		map.setView(center, zoom);
+		return null;
+	};
+
+	return (
+		<div style={{ height: "400px", width: "100%" }}>
+			<MapContainer
+				center={center}
+				zoom={zoom}
+				style={{ height: "100%", width: "100%" }}
+			>
+				<TileLayer
+					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+					attribution="&copy; OpenStreetMap contributors"
+				/>
+				{isPolygon ? (
+					<Polygon positions={selectedRegion} />
+				) : (
+					<Marker
+						position={center}
+						icon={L.icon({
+							iconUrl:
+								"https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+							iconSize: [25, 41],
+							iconAnchor: [12, 41]
+						})}
+					/>
+				)}
+				<MapEvents />
+			</MapContainer>
+		</div>
+	);
+};
+
+export default MapView;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/RegionFilter.tsx
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card } from "react-bootstrap";
+import axios from "axios";
+import MapView from "./MapView";
+import SearchBar from "./SearchBar";
+import ResultList from "./ResultList";
+
+const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	const [selectedRegion, setSelectedRegion] = useState<any[]>([]);
+	const [center, setCenter] = useState<[number, number]>([0, 0]);
+	const [zoom, setZoom] = useState<number>(2);
+	const [isPolygon, setIsPolygon] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(false);
+	const [foundPlaces, setFoundPlaces] = useState<any[]>([]);
+	const [selectedPlace, setSelectedPlace] = useState<any>(null);
+
+	useEffect(() => {
+		if (isOpen) {
+			setTimeout(() => {
+				window.dispatchEvent(new Event("resize"));
+			}, 100);
+		}
+	}, [isOpen]);
+
+	const handleSearch = async (placeName: string) => {
+		if (!placeName) return;
+
+		setLoading(true);
+		try {
+			const response = await axios.get(
+				`https://nominatim.openstreetmap.org/search`,
+				{
+					params: {
+						q: placeName,
+						format: "json",
+						polygon_geojson: 1
+					}
+				}
+			);
+
+			if (response.data.length > 0) {
+				setFoundPlaces(response.data);
+			} else {
+				alert("Local não encontrado");
+				setFoundPlaces([]);
+			}
+		} catch (error) {
+			console.error("Erro ao buscar o local:", error);
+			alert("Erro ao buscar o local");
+			setFoundPlaces([]);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const selectPlace = (place: any) => {
+		setSelectedPlace(place);
+		if (place.geojson && place.geojson.type === "Polygon") {
+			const coordinates = place.geojson.coordinates[0].map(
+				(coord: [number, number]) => ({
+					lat: coord[1],
+					lng: coord[0]
+				})
+			);
+			setSelectedRegion(coordinates);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(10);
+			setIsPolygon(true);
+		} else {
+			setSelectedRegion([]);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(15);
+			setIsPolygon(false);
+		}
+	};
+
+	return (
+		<Card className="mb-3">
+			<Card.Body>
+				<Row>
+					<Col md={8}>
+						<MapView
+							center={center}
+							zoom={zoom}
+							selectedRegion={selectedRegion}
+							isPolygon={isPolygon}
+							isOpen={isOpen}
+						/>
+					</Col>
+					<Col md={4}>
+						<SearchBar onSearch={handleSearch} loading={loading} />
+						<ResultList
+							places={foundPlaces}
+							selectedPlace={selectedPlace}
+							onSelectPlace={selectPlace}
+						/>
+					</Col>
+				</Row>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default RegionFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultItem.tsx
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+
+interface ResultItemProps {
+	place: any;
+	isSelected: boolean;
+	onSelect: () => void;
+}
+
+const ResultItem: React.FC<ResultItemProps> = ({
+	place,
+	isSelected,
+	onSelect
+}) => {
+	return (
+		<Card className="mb-2">
+			<Card.Body>
+				<Card.Title>{place.display_name.split(",")[0]}</Card.Title>
+				<Card.Text>{place.display_name}</Card.Text>
+				<Button
+					variant={isSelected ? "success" : "outline-primary"}
+					onClick={onSelect}
+				>
+					{isSelected ? "Selecionado" : "Selecionar"}
+				</Button>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultItem;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultList.tsx
+import React from "react";
+import ResultItem from "./ResultItem";
+import { Card } from "react-bootstrap";
+
+interface ResultListProps {
+	places: any[];
+	selectedPlace: any;
+	onSelectPlace: (place: any) => void;
+}
+
+const ResultList: React.FC<ResultListProps> = ({
+	places,
+	selectedPlace,
+	onSelectPlace
+}) => {
+	return (
+		<Card style={{ maxHeight: "400px", overflowY: "auto" }}>
+			<Card.Body>
+				{places.length === 0 ? (
+					<div className="text-center text-muted">
+						Nenhum resultado encontrado. Digite o nome de um lugar
+						para buscar.
+					</div>
+				) : (
+					places.map((place, index) => (
+						<ResultItem
+							key={index}
+							place={place}
+							isSelected={
+								selectedPlace &&
+								selectedPlace.place_id === place.place_id
+							}
+							onSelect={() => onSelectPlace(place)}
+						/>
+					))
+				)}
+				{selectedPlace === null && places.length > 0 && (
+					<div className="text-center text-muted mt-2">
+						Caso não tenha selecionado um lugar, as imagens de todos
+						os lugares aparecerão aqui.
+					</div>
+				)}
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultList;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/SearchBar.tsx
+import React, { useState } from "react";
+import { Form, Button, Spinner } from "react-bootstrap";
+
+interface SearchBarProps {
+	onSearch: (placeName: string) => void;
+	loading: boolean;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
+	const [placeName, setPlaceName] = useState<string>("");
+
+	const handleSearch = () => {
+		onSearch(placeName);
+	};
+
+	return (
+		<Form.Group controlId="regionSearchBar">
+			<Form.Control
+				type="text"
+				placeholder="Nome do lugar (País, Estado, etc.)"
+				value={placeName}
+				onChange={(e) => setPlaceName(e.target.value)}
+				className="mb-2"
+			/>
+			<Button
+				variant="primary"
+				onClick={handleSearch}
+				className="mb-2"
+				disabled={loading}
+			>
+				{loading ? <Spinner animation="border" size="sm" /> : "Buscar"}
+			</Button>
+		</Form.Group>
+	);
+};
+
+export default SearchBar;
+
+
+Arquivo: components/Body/Tabs/FilterTab/TagsFilter.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const tagOptions = [
+	{ value: "Tag1", label: "Tag 1" },
+	{ value: "Tag2", label: "Tag 2" },
+	{ value: "Tag3", label: "Tag 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const TagsFilter: React.FC = () => {
+	const [selectedTags, setSelectedTags] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="tagsFilter">
+			<Form.Label>Tags Especiais</Form.Label>
+			<Select
+				isMulti
+				options={tagOptions}
+				value={selectedTags}
+				onChange={(newValue: any, actionMeta: any) =>
+					setSelectedTags(newValue as any[])
+				}
+				placeholder="Digite as tags"
+			/>
+		</Form.Group>
+	);
+};
+
+export default TagsFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/TypeFilter.tsx
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const TypeFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="typeFilter">
+			<Form.Label>Tipo</Form.Label>
+			<Form.Control type="text" placeholder="Digite o tipo" />
+		</Form.Group>
+	);
+};
+
+export default TypeFilter;
+
+
+Arquivo: components/Body/Tabs/MainTab/ButtonBar.tsx
+import React from "react";
+import { Button } from "react-bootstrap";
+
+const ButtonBar: React.FC = () => {
+	return (
+		<div className="button-bar d-flex justify-content-center">
+			<Button variant="primary">Button 1</Button>
+			<Button variant="secondary">Button 2</Button>
+			<Button variant="success">Button 3</Button>
+			{/* Add more buttons as needed */}
+		</div>
+	);
+};
+
+export default ButtonBar;
+
+
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassCard.tsx
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+import { FaStar, FaRegStar, FaCheckCircle, FaCircle } from "react-icons/fa";
+
+interface ClassCardProps {
+	cls: { id: number; label: string };
+	isFavorite: boolean;
+	isSelected: boolean;
+	onFavoriteToggle: (id: number) => void;
+	onSelectToggle: (id: number) => void;
+}
+
+const ClassCard: React.FC<ClassCardProps> = ({
+	cls,
+	isFavorite,
+	isSelected,
+	onFavoriteToggle,
+	onSelectToggle
+}) => (
+	<Card key={cls.id} className="mb-2 w-100">
+		<Card.Body className="d-flex justify-content-between align-items-center">
+			<div className="d-flex flex-column">
+				<span>{cls.label}</span>
+				<small>ID: {cls.id}</small>
+			</div>
+			<div className="d-flex align-items-center">
+				<Button
+					variant="link"
+					onClick={(e) => {
+						e.stopPropagation();
+						onFavoriteToggle(cls.id);
+					}}
+				>
+					{isFavorite ? <FaStar color="gold" /> : <FaRegStar />}
+				</Button>
+				<Button
+					variant="link"
+					onClick={(e) => {
+						e.stopPropagation();
+						onSelectToggle(cls.id);
+					}}
+				>
+					{isSelected ? (
+						<FaCheckCircle color="green" />
+					) : (
+						<FaCircle color="gray" />
+					)}
+				</Button>
+			</div>
+		</Card.Body>
+	</Card>
+);
+
+export default ClassCard;
+
+
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassToggleList.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import ClassCard from "./ClassCard";
+
+const classList = [
+	{ id: 0, label: "Lombada" },
+	{ id: 1, label: "Sarjetão" },
+	{ id: 2, label: "Buraco" },
+	{ id: 3, label: "Tampa de PV Adequada" },
+	{ id: 4, label: "Tampa de PV com Defeito" },
+	{ id: 5, label: "Recomposição Asfáltica" },
+	{ id: 6, label: "Fissura Couro de Jacaré" },
+	{ id: 7, label: "Fissura Transversal" },
+	{ id: 8, label: "Fissura Longitudinal" },
+	{ id: 9, label: "Boca de Lobo" },
+	{ id: 10, label: "Sarjeta/Drenagem com Defeito" },
+	{ id: 11, label: "Placa de Regulamentação" },
+	{ id: 12, label: "Placa de Advertência" },
+	{ id: 13, label: "Placa De Indicação" },
+	{ id: 14, label: "Placa Educativa" },
+	{ id: 15, label: "Placa Auxiliar" },
+	{ id: 16, label: "Lixeira" },
+	{ id: 17, label: "Hidrante" },
+	{ id: 18, label: "Paralelepípedo" },
+	{ id: 19, label: "Boca de Leão" },
+	{ id: 20, label: "Sombra" },
+	{ id: 21, label: "Tachão" },
+	{ id: 22, label: "N/A" },
+	{ id: 23, label: "Sinalização Horizontal" },
+	{ id: 24, label: "Placa" },
+	{ id: 25, label: "Fissura" },
+	{ id: 26, label: "Tampa de PV" },
+	{ id: 27, label: "Boca de Lobo Adequada" },
+	{ id: 28, label: "Boca de Lobo Inadequada" },
+	{ id: 29, label: "Sarjetão Adequado" },
+	{ id: 30, label: "Sarjetão Inadequado" },
+	{ id: 31, label: "Buraco Profundo" },
+	{ id: 32, label: "Buraco Superficial" },
+	{ id: 33, label: "Entulho" },
+	{ id: 34, label: "Faixa de Pedestre" },
+	{ id: 35, label: "Poste" },
+	{ id: 36, label: "Lixeira Adequada" },
+	{ id: 37, label: "Lixeira Inadequada" },
+	{ id: 38, label: "Lixeira Transbordando" },
+	{ id: 39, label: "Galhardete" },
+	{ id: 40, label: "Saco de Varrição" },
+	{ id: 41, label: "Sarjeta" },
+	{ id: 42, label: "Tacha Refletiva" },
+	{ id: 43, label: "Trinca Selada" },
+	{ id: 44, label: "Defensa Metálica" },
+	{ id: 45, label: "Mato Baixo" },
+	{ id: 46, label: "Mato Alto" },
+	{ id: 49, label: "Grama na Sarjeta" },
+	{ id: 50, label: "Árvore" },
+	{ id: 51, label: "Rua" },
+	{ id: 52, label: "Calçada" },
+	{ id: 53, label: "Canteiro" },
+	{ id: 54, label: "Partes do Carro" },
+	{ id: 55, label: "Reflexo" },
+	{ id: 56, label: "Fundo" },
+	{ id: 57, label: "Background" },
+	{ id: 80, label: "Marco Vertical" },
+	{ id: 81, label: "Válvula Gás" },
+	{ id: 82, label: "Poste ERP" },
+	{ id: 999002, label: "Árvores" },
+	{ id: 999003, label: "Excesso de fio" }
+];
+
+const ClassToggleList: React.FC = () => {
+	const [selectedClass, setSelectedClass] = useState<number | null>(null);
+	const [favoriteClasses, setFavoriteClasses] = useState<number[]>([]);
+	const [searchTerm, setSearchTerm] = useState<string>("");
+
+	const handleSelectClass = (id: number) => {
+		setSelectedClass(id);
+	};
+
+	const toggleFavorite = (id: number) => {
+		setFavoriteClasses((prev) =>
+			prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
+		);
+	};
+
+	const filteredClasses = classList.filter(
+		(cls) =>
+			cls.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			cls.id.toString().includes(searchTerm)
+	);
+
+	return (
+		<div
+			style={{
+				height: "100%",
+				overflowY: "auto",
+				padding: "1rem",
+				backgroundColor: "#f8f9fa"
+			}}
+		>
+			<Form.Control
+				type="text"
+				placeholder="Buscar classes..."
+				value={searchTerm}
+				onChange={(e) => setSearchTerm(e.target.value)}
+				className="mb-2"
+			/>
+			<h5>Favoritos</h5>
+			{favoriteClasses.length === 0 && <div>Nenhum favorito</div>}
+			<div className="mb-3">
+				{favoriteClasses.map((favId) => {
+					const cls = classList.find((c) => c.id === favId);
+					if (!cls) return null;
+					return (
+						<ClassCard
+							key={cls.id}
+							cls={cls}
+							isFavorite={true}
+							isSelected={selectedClass === cls.id}
+							onFavoriteToggle={toggleFavorite}
+							onSelectToggle={handleSelectClass}
+						/>
+					);
+				})}
+			</div>
+
+			<h5>Prováveis</h5>
+			<div>Placeholder para Prováveis</div>
+
+			<h5>Todas as Classes</h5>
+			<div>
+				{filteredClasses.map((cls) => (
+					<ClassCard
+						key={cls.id}
+						cls={cls}
+						isFavorite={favoriteClasses.includes(cls.id)}
+						isSelected={selectedClass === cls.id}
+						onFavoriteToggle={toggleFavorite}
+						onSelectToggle={handleSelectClass}
+					/>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default ClassToggleList;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/BoundingBox.tsx
+// import React from "react";
+// import { Rect, Circle } from "react-konva";
+// import { Point } from "hooks/types";
+
+// const BoundingBox: React.FC<{ startPoint: Point; endPoint: Point }> = ({ startPoint, endPoint }) => {
+//   const rectProps = {
+//     x: startPoint.x,
+//     y: startPoint.y,
+//     width: endPoint.x - startPoint.x,
+//     height: endPoint.y - startPoint.y
+//   };
+
+//   return (
+//     <>
+//       <Rect
+//         {...rectProps}
+//         stroke="blue"
+//         strokeWidth={2}
+//       />
+//       <Circle
+//         x={rectProps.x}
+//         y={rectProps.y}
+//         radius={5}
+//         fill="blue"
+//       />
+//       <Circle
+//         x={rectProps.x + rectProps.width}
+//         y={rectProps.y + rectProps.height}
+//         radius={5}
+//         fill="red"
+//       />
+//     </>
+//   );
+// };
+
+// export default BoundingBox;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/Geometry.tsx
+import React from "react";
+import { Line, Rect } from "react-konva";
+import { GeometryItem } from "context/DrawingContext";
+
+interface GeometryProps {
+  item: GeometryItem;
+}
+
+const Geometry: React.FC<GeometryProps> = ({ item }) => {
+  switch (item.type) {
+    case "polyline":
+      return (
+        <Line
+          points={item.points.flatMap((point) => [point.x, point.y])}
+          stroke="black"
+          strokeWidth={2}
+          lineCap="round"
+          lineJoin="round"
+        />
+      );
+    case "boundingBox":
+      const { startPoint, endPoint } = item;
+      const width = endPoint.x - startPoint.x;
+      const height = endPoint.y - startPoint.y;
+      return (
+        <Rect
+          x={startPoint.x}
+          y={startPoint.y}
+          width={width}
+          height={height}
+          stroke="blue"
+          strokeWidth={2}
+          dash={[4, 4]}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
+export default Geometry;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/GeometryPreview.tsx
+import React from "react";
+import { Line, Rect } from "react-konva";
+import { DrawingState, PreviewBoundingBox, PreviewPolyline } from "context/DrawingContext";
+
+interface GeometryPreviewProps {
+  previewItem: PreviewBoundingBox | PreviewPolyline | null;
+}
+
+const GeometryPreview: React.FC<GeometryPreviewProps> = ({ previewItem }) => {
+  if (!previewItem) return null;
+
+  switch (previewItem.type) {
+    case "polyline":
+      const points = previewItem.currentMovingPoint
+        ? [...previewItem.points, previewItem.currentMovingPoint]
+        : previewItem.points;
+      return (
+        <Line
+          points={points.flatMap((point) => [point.x, point.y])}
+          stroke="black"
+          strokeWidth={2}
+          lineCap="round"
+          lineJoin="round"
+          dash={[10, 5]}
+        />
+      );
+    case "boundingBox":
+      const { startPoint, endPoint } = previewItem;
+      const width = endPoint.x - startPoint.x;
+      const height = endPoint.y - startPoint.y;
+      return (
+        <Rect
+          x={startPoint.x}
+          y={startPoint.y}
+          width={width}
+          height={height}
+          stroke="blue"
+          strokeWidth={2}
+          dash={[10, 5]}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
+export default GeometryPreview;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/PolyLine.tsx
+// import React, { useState } from "react";
+// import { Line, Circle } from "react-konva";
+// import { Point } from "../../../../hooks/types";
+// import { calculateMidPoint, handleInsertPoint } from "@src/hooks/helpers";
+
+// const PolyLine: React.FC<{ points: Point[] }> = ({ points }) => {
+//   const [polyPoints, setPolyPoints] = useState<Point[]>(points);
+
+//   const handleDragMove = (e: any, index: number) => {
+//     const newPoints = [...polyPoints];
+//     newPoints[index] = { x: e.target.x(), y: e.target.y() };
+//     setPolyPoints(newPoints);
+//   };
+
+//   return (
+//     <>
+//       <Line
+//         points={polyPoints.flatMap((p) => [p.x, p.y])}
+//         stroke="red"
+//         strokeWidth={2}
+//       />
+//       {polyPoints.map((point, index) => (
+//         <Circle
+//           key={index}
+//           x={point.x}
+//           y={point.y}
+//           radius={5}
+//           fill="blue"
+//           draggable
+//           onDragMove={(e) => handleDragMove(e, index)}
+//         />
+//       ))}
+//       {polyPoints.map((point, index) => {
+//         if (index === polyPoints.length - 1) return null;
+//         const midPoint = calculateMidPoint(point, polyPoints[index + 1]);
+//         return (
+//           <Circle
+//             key={`mid-${index}`}
+//             x={midPoint.x}
+//             y={midPoint.y}
+//             radius={5}
+//             fill="green"
+//             draggable
+//             onDragEnd={(e) => setPolyPoints(handleInsertPoint(polyPoints, index + 1, { x: e.target.x(), y: e.target.y() }))}
+//           />
+//         );
+//       })}
+//     </>
+//   );
+// };
+
+// export default PolyLine;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/ImageFrame.tsx
+import React, { useRef, useEffect, useContext } from "react";
+import { Stage, Layer, Rect } from "react-konva";
+import Geometry from "./Geometry/Geometry";
+import { DrawingContext } from "context/DrawingContext";
+import { ToolContext } from "context/ToolContext";
+import GeometryPreview from "./Geometry/GeometryPreview";
+
+interface ImageFrameProps {
+  isOpen: boolean;
+}
+
+const ImageFrame: React.FC<ImageFrameProps> = ({ isOpen }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<any>(null);
+
+  const drawingContext = useContext(DrawingContext);
+  const toolContext = useContext(ToolContext);
+
+  if (!drawingContext || !toolContext) {
+    throw new Error("DrawingContext and ToolContext must be used within seus respectivos providers");
+  }
+
+  const { state: drawingState, dispatch: drawingDispatch } = drawingContext;
+  const { state: toolState } = toolContext;
+
+  const dimensions = { width: 100, height: 100 }; // Exemplary dimensions
+
+  useEffect(() => {
+    if (stageRef.current) {
+      stageRef.current.width(dimensions.width);
+      stageRef.current.height(dimensions.height);
+      stageRef.current.batchDraw();
+    }
+  }, [dimensions, isOpen]);
+
+  const handlePointerDown = () => {
+    if (!toolState.selectedTool) return;
+    const stage = stageRef.current;
+    const point = stage.getPointerPosition();
+    drawingDispatch({ type: 'POINTER_DOWN', point });
+  };
+
+  const handlePointerDrag = () => {
+    if (!drawingState.isDrawing) return;
+    const stage = stageRef.current;
+    const point = stage.getPointerPosition();
+    drawingDispatch({ type: 'POINTER_DRAG', point });
+  };
+
+  const handlePointerUp = () => {
+    if (!drawingState.isDrawing) return;
+    drawingDispatch({ type: 'POINTER_UP' });
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#5c949f",
+      }}
+    >
+      <Stage
+        width={dimensions.width}
+        height={dimensions.height}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerDrag}
+        onPointerUp={handlePointerUp}
+        ref={stageRef}
+      >
+        <Layer>
+          <Rect
+            x={0}
+            y={0}
+            width={dimensions.width}
+            height={dimensions.height}
+            fill="lightgray"
+          />
+          {drawingState.items.map((geo: any, index: number) => (
+            <Geometry key={index} item={geo} />
+          ))}
+          {drawingState.previewItem && <GeometryPreview previewItem={drawingState.previewItem} />}
+        </Layer>
+      </Stage>
+    </div>
+  );
+};
+
+export default ImageFrame;
+
+
+Arquivo: components/Body/Tabs/MainTab/MainTab.tsx
+import React from 'react';
+import { ToolProvider } from 'context/ToolContext';
+import { DrawingProvider } from 'context/DrawingContext';
+import { InteractionStateProvider } from 'context/InteractionStateContext';
+import Toolbar from './Toolbar';
+import { Col, Container, Row } from 'react-bootstrap';
+import ButtonBar from './ButtonBar';
+import ClassToggleList from './ClassToggleList/ClassToggleList';
+import ImageFrame from './ImageFrame/ImageFrame';
+
+const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+  return (
+    <ToolProvider>
+      <DrawingProvider>
+        <InteractionStateProvider>
+          <Toolbar/>
+          <Container fluid style={{ padding: 0 }}>
+            <Row noGutters className="d-flex flex-column flex-lg-row" style={{ height: "75vh" }}>
+              <Col lg={9} md={12} style={{ overflowY: "auto" }}>
+                <div style={{ height: "500px" }}>
+                  <ImageFrame isOpen={isOpen} />
+                </div>
+              </Col>
+              <Col lg={3} md={12} style={{ overflowY: "auto" }}>
+                <div style={{ height: "500px" }}>
+                  <ClassToggleList />
+                </div>
+              </Col>
+            </Row>
+          </Container>
+          <ButtonBar />
+        </InteractionStateProvider>
+      </DrawingProvider>
+    </ToolProvider>
+  );
+};
+
+export default MainTab;
+
+
+Arquivo: components/Body/Tabs/MainTab/Toolbar.tsx
+import React, { useContext } from "react";
+import { ToolContext } from "context/ToolContext";
+import { DrawingContext } from "context/DrawingContext";
+import {ButtonToolbar, ToggleButton, ToggleButtonGroup} from "react-bootstrap";
+
+interface ToolbarProps {
+  onToolChange?: (value: string) => void;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({ onToolChange }) => {
+  const toolContext = useContext(ToolContext);
+  const drawingContext = useContext(DrawingContext);
+
+  if (!toolContext || !drawingContext) {
+    throw new Error("ToolContext and DrawingContext must be used within their respective providers");
+  }
+
+  const { state: toolState, dispatch: toolDispatch } = toolContext;
+  const { state: drawingState } = drawingContext;
+
+  const handleToolChange = (value: string) => {
+    toolDispatch({ type: 'SET_TOOL', payload: value });
+    if (onToolChange) {
+      onToolChange(value);
+    }
+  };
+
+  return (
+    <ButtonToolbar>
+      <ToggleButtonGroup
+        type="radio"
+        name="toolsGroup1"
+        value={toolState.selectedTool}
+        onChange={(value: string) => handleToolChange(value)}
+        className="mb-2"
+      >
+        <ToggleButton
+          variant="outline-secondary"
+          value="createPolyLine"
+          id="createPolyLine"
+          disabled={drawingState.isDrawing}
+        >
+          {drawingState.isDrawing && toolState.selectedTool === "createPolyLine"
+            ? "Criando Poly Line"
+            : "Criar Poly Line"}
+        </ToggleButton>
+        <ToggleButton
+          variant="outline-secondary"
+          value="createBoundingBox"
+          id="createBoundingBox"
+          disabled={drawingState.isDrawing}
+        >
+          {drawingState.isDrawing && toolState.selectedTool === "createBoundingBox"
+            ? "Criando Bounding Box"
+            : "Criar Bounding Box"}
+        </ToggleButton>
+      </ToggleButtonGroup>
+      <ToggleButtonGroup
+        type="radio"
+        name="toolsGroup2"
+        value={toolState.selectedTool}
+        onChange={(value: string) => handleToolChange(value)}
+        className="mb-2"
+      >
+        <ToggleButton
+          variant="outline-secondary"
+          value="select"
+          id="select"
+          disabled={drawingState.isDrawing}
+        >
+          Selecionar
+        </ToggleButton>
+        <ToggleButton
+          variant="outline-secondary"
+          value="resize"
+          id="resize"
+          disabled={drawingState.isDrawing}
+        >
+          Redimensionar
+        </ToggleButton>
+        <ToggleButton
+          variant="outline-secondary"
+          value="move"
+          id="move"
+          disabled={drawingState.isDrawing}
+        >
+          Mover
+        </ToggleButton>
+        <ToggleButton
+          variant="outline-secondary"
+          value="delete"
+          id="delete"
+          disabled={drawingState.isDrawing}
+        >
+          Deletar
+        </ToggleButton>
+      </ToggleButtonGroup>
+    </ButtonToolbar>
+  );
+};
+
+export default Toolbar;
+
+
+Arquivo: components/Header/Header.tsx
+import React, { useState } from "react";
+import NavbarComponent from "./Navbar";
+import Sidebar from "./Sidebar";
+
+const Header: React.FC = () => {
+	const [show, setShow] = useState(false);
+
+	const handleClose = () => setShow(false);
+	const handleShow = () => setShow(true);
+
+	return (
+		<>
+			<NavbarComponent handleShow={handleShow} />
+			<Sidebar show={show} handleClose={handleClose} />
+		</>
+	);
+};
+
+export default Header;
+
+
+Arquivo: components/Header/Navbar.tsx
+import React from "react";
+import { Navbar, Nav, Button, Badge } from "react-bootstrap";
+import { FaBars, FaExclamationCircle, FaBell } from "react-icons/fa";
+import { logoStyle, navTextStyle, buttonStyle, badgeStyle } from "./styles";
+
+interface NavbarProps {
+	handleShow: () => void;
+}
+
+const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
+	return (
+		<Navbar bg="dark" variant="dark" className="px-3">
+			<Nav>
+				<FaBars
+					style={{
+						color: "green",
+						fontSize: "1.5em",
+						cursor: "pointer"
+					}}
+					onClick={handleShow}
+				/>
+			</Nav>
+			<img
+				src="/icons/LOGO-1920w.webp"
+				alt="Logo da Empresa"
+				style={logoStyle}
+			/>
+			<Navbar.Text className="mx-auto" style={navTextStyle}>
+				Sistema Geral de Classificação (SGC)
+			</Navbar.Text>
+			<Nav className="ml-auto d-flex align-items-center gap-2">
+				<Button variant="success" className="mr-5">
+					Metas
+				</Button>
+				<Button variant="success" className="mr-5" style={buttonStyle}>
+					<FaExclamationCircle
+						style={{ color: "white", fontSize: "1.2em" }}
+					/>
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						3
+					</Badge>
+				</Button>
+				<Button variant="warning" className="mr-2" style={buttonStyle}>
+					<FaBell style={{ color: "white", fontSize: "1.2em" }} />
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						10
+					</Badge>
+				</Button>
+			</Nav>
+		</Navbar>
+	);
+};
+
+export default NavbarComponent;
+
+
+Arquivo: components/Header/Sidebar.tsx
+import React from "react";
+import { Offcanvas, Nav } from "react-bootstrap";
+import {
+	FaHome,
+	FaTachometerAlt,
+	FaClipboardList,
+	FaBox,
+	FaUsers
+} from "react-icons/fa";
+
+interface SidebarProps {
+	show: boolean;
+	handleClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ show, handleClose }) => {
+	return (
+		<Offcanvas show={show} onHide={handleClose}>
+			<Offcanvas.Header closeButton>
+				<Offcanvas.Title>Sidebar</Offcanvas.Title>
+			</Offcanvas.Header>
+			<Offcanvas.Body className="p-0">
+				<Nav className="flex-column bg-dark h-100 p-3">
+					<Nav.Link href="#home" className="text-white">
+						<FaHome className="mr-2" /> Home
+					</Nav.Link>
+					<Nav.Link href="#dashboard" className="text-white">
+						<FaTachometerAlt className="mr-2" /> Dashboard
+					</Nav.Link>
+					<Nav.Link href="#orders" className="text-white">
+						<FaClipboardList className="mr-2" /> Orders
+					</Nav.Link>
+					<Nav.Link href="#products" className="text-white">
+						<FaBox className="mr-2" /> Products
+					</Nav.Link>
+					<Nav.Link href="#customers" className="text-white">
+						<FaUsers className="mr-2" /> Customers
+					</Nav.Link>
+					<div className="mt-auto">
+						<div className="d-flex align-items-center text-white">
+							<img
+								src="https://via.placeholder.com/40"
+								alt="Profile"
+								className="rounded-circle mr-2"
+								width="40"
+								height="40"
+							/>
+							<span>mdo</span>
+						</div>
+					</div>
+				</Nav>
+			</Offcanvas.Body>
+		</Offcanvas>
+	);
+};
+
+export default Sidebar;
+
+
+Arquivo: components/Header/styles.ts
+import { CSSProperties } from "react";
+
+export const logoStyle: CSSProperties = {
+	height: "50px",
+	marginRight: "auto",
+	marginLeft: "10px"
+};
+
+export const navTextStyle: CSSProperties = {
+	color: "white",
+	fontSize: "1.5em"
+};
+
+export const buttonStyle: CSSProperties = {
+	position: "relative"
+};
+
+export const badgeStyle: CSSProperties = {
+	position: "absolute",
+	top: "-5px",
+	right: "-5px"
+};
+
+
+Arquivo: context/DrawingContext.tsx
+// DrawingContext.tsx
+import React, { createContext, useContext, useReducer } from 'react';
+import { ToolContext, ToolContextValue } from './ToolContext';
+
+export interface Point {
+	x: number;
+	y: number;
+}
+
+export interface Polyline {
+  type: "polyline";
+  points: Point[];
+}
+
+export interface BoundingBox {
+  type: "boundingBox";
+  startPoint: Point;
+  endPoint: Point;
+}
+
+export type GeometryItem = Polyline | BoundingBox;
+
+export type PreviewPolyline = {
+  type: "polyline";
+  points: Point[];
+  currentMovingPoint: Point | null;
+  currentMovingPointIndex: number | null;
+  closedGeometry: boolean;
+};
+
+export type PreviewBoundingBox = {
+  type: "boundingBox";
+  startPoint: Point;
+  endPoint: Point;
+  hasMoved: boolean;
+};
+
+export type DrawingState = {
+  previewItem: PreviewBoundingBox | PreviewPolyline | null;
+  items: GeometryItem[];
+  isDrawing: boolean;
+};
+
+export type Action =
+  { type: "POINTER_DOWN", point: Point } |
+  { type: "POINTER_DRAG", point: Point } |
+  { type: "POINTER_UP", point: Point };
+
+const initialDrawingState: DrawingState = {
+  previewItem: null,
+  items: [],
+  isDrawing: false,
+};
+
+const DrawingReducer = (drawingState: DrawingState, action: Action): DrawingState => {
+  const toolContext = useContext(ToolContext);
+  if (!toolContext) {
+    throw new Error("ToolContext must be used within a ToolProvider");
+  }
+  const { state: toolState } = toolContext;
+
+  switch (action.type) {
+    case "POINTER_DOWN":
+      if (toolState.selectedTool === "createPolyLine") {
+        if (drawingState.previewItem === null) {
+          return {
+            ...drawingState,
+            previewItem: {
+              type: "polyline",
+              currentMovingPoint: action.point,
+              currentMovingPointIndex: 0,
+              points: [],
+              closedGeometry: false
+            } as PreviewPolyline,
+          };
+        } else {
+          if (drawingState.previewItem.type === "polyline") {
+            const index = drawingState.previewItem.points.length;
+            return {
+              ...drawingState,
+              previewItem: {
+                ...drawingState.previewItem,
+                currentMovingPoint: action.point,
+                currentMovingPointIndex: index,
+              },
+            };
+          }
+        }
+      }
+      if (toolState.selectedTool === "createBoundingBox") {
+        return {
+          ...drawingState,
+          previewItem: {
+            type: "boundingBox",
+            startPoint: action.point,
+            endPoint: action.point,
+            hasMoved: false
+          } as PreviewBoundingBox,
+        };
+      }
+      return drawingState;
+
+    case "POINTER_DRAG":
+      if (drawingState.previewItem?.type === "polyline") {
+        const newPreviewItem = {
+          ...drawingState.previewItem,
+          currentMovingPoint: action.point,
+        };
+        return {
+          ...drawingState,
+          previewItem: newPreviewItem,
+        };
+      }
+      if (drawingState.previewItem?.type === "boundingBox") {
+        const newPreviewItem = {
+          ...drawingState.previewItem,
+          endPoint: action.point,
+          hasMoved: true,
+        };
+        return {
+          ...drawingState,
+          previewItem: newPreviewItem,
+        };
+      }
+      return drawingState;
+
+    case "POINTER_UP":
+      if (drawingState.previewItem?.type === "polyline") {
+        if (drawingState.previewItem.currentMovingPointIndex !== null) {
+          const newPreviewItem = {
+            ...drawingState.previewItem,
+            currentMovingPoint: null,
+            currentMovingPointIndex: null,
+            points: [
+              ...drawingState.previewItem.points.slice(0, drawingState.previewItem.currentMovingPointIndex),
+              action.point,
+              ...drawingState.previewItem.points.slice(drawingState.previewItem.currentMovingPointIndex)
+            ],
+          };
+          return {
+            ...drawingState,
+            previewItem: newPreviewItem,
+          };
+        }
+      }
+      if (drawingState.previewItem?.type === "boundingBox") {
+        if (drawingState.previewItem.hasMoved) {
+          return {
+            ...drawingState,
+            items: [
+              ...drawingState.items,
+              {
+                type: "boundingBox",
+                startPoint: drawingState.previewItem.startPoint,
+                endPoint: action.point,
+              } as BoundingBox,
+            ],
+            previewItem: null,
+          };
+        } else {
+          return {
+            ...drawingState,
+            previewItem: null,
+          };
+        }
+      }
+      return drawingState;
+
+    default:
+      return drawingState;
+  }
+};
+
+export const DrawingContext = createContext<{ state: DrawingState, dispatch: React.Dispatch<any> } | undefined>(undefined);
+
+export const DrawingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, dispatch] = useReducer(DrawingReducer, initialDrawingState);
+
+  return (
+    <DrawingContext.Provider value={{ state, dispatch }}>
+      {children}
+    </DrawingContext.Provider>
+  );
+};
+
+
+Arquivo: context/InteractionStateContext.tsx
+import React, { createContext, useContext, useEffect } from 'react';
+import { ToolContext } from './ToolContext';
+import { DrawingContext } from './DrawingContext';
+
+export const InteractionStateContext = createContext<React.ReactNode | undefined>(undefined);
+
+export const InteractionStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const toolContext = useContext(ToolContext);
+  const drawingContext = useContext(DrawingContext);
+
+  if (!toolContext || !drawingContext) {
+    throw new Error('InteractionStateProvider must be used within ToolProvider and DrawingProvider');
+  }
+
+  const { state: toolState } = toolContext;
+  const { state: drawingState, dispatch: drawingDispatch } = drawingContext;
+
+  useEffect(() => {
+    if (drawingState.isDrawing && toolState.selectedTool !== 'draw') {
+      drawingDispatch({ type: 'STOP_DRAWING' });
+    }
+  }, [toolState, drawingState, drawingDispatch]);
+
+  return (
+    <InteractionStateContext.Provider value={null}>
+      {children}
+    </InteractionStateContext.Provider>
+  );
+};
+
+
+Arquivo: context/ToolContext.tsx
+// ToolContext.tsx
+import React, { createContext, useReducer } from "react";
+
+type ToolState = {
+  selectedTool: string | null;
+};
+
+const initialState: ToolState = { selectedTool: null };
+
+const ToolReducer = (state: ToolState, action: { type: string, payload: string }): ToolState => {
+  switch (action.type) {
+    case "SET_TOOL":
+      return { ...state, selectedTool: action.payload };
+    default:
+      return state;
+  }
+};
+
+export interface ToolContextValue {
+  state: ToolState;
+  dispatch: React.Dispatch<any>;
+}
+
+export const ToolContext = createContext<ToolContextValue | undefined>(undefined);
+
+export const ToolProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, dispatch] = useReducer(ToolReducer, initialState);
+
+  return (
+    <ToolContext.Provider value={{ state, dispatch }}>
+      {children}
+    </ToolContext.Provider>
+  );
+};
+
+
+Arquivo: declarations.d.ts
+declare module "*.png" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpg" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpeg" {
+	const value: string;
+	export default value;
+}
+declare module "*.gif" {
+	const value: string;
+	export default value;
+}
+declare module "*.svg" {
+	const value: string;
+	export default value;
+}
+declare module "*.webp" {
+	const value: string;
+	export default value;
+}
+
+
+Arquivo: hooks/helpers.ts
+import { Point } from "context/DrawingContext";
+
+export const calculateMidPoint = (pointA: Point, pointB: Point): Point => {
+  return {
+    x: (pointA.x + pointB.x) / 2,
+    y: (pointA.y + pointB.y) / 2
+  };
+};
+
+export const handleInsertPoint = (points: Point[], index: number, newPoint: Point): Point[] => {
+  const newPoints = [...points];
+  newPoints.splice(index, 0, newPoint);
+  return newPoints;
+};
+
+
+Arquivo: hooks/types.ts
+
+
+Arquivo: hooks/useDimensions.ts
+import { useState, useEffect } from "react";
+
+const useDimensions = (containerRef: React.RefObject<HTMLDivElement>, isOpen: boolean) => {
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
+        });
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isOpen, containerRef]);
+
+  return dimensions;
+};
+
+export default useDimensions;
+
+
+Arquivo: index.tsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./components/App";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+const container = document.getElementById("root");
+const root = createRoot(container!);
+root.render(<App />);
+
+
+Arquivo: react-app-env.d.ts
+/// <reference types="react-scripts" />
+
+
+Arquivo: styles/global.css
+
+
