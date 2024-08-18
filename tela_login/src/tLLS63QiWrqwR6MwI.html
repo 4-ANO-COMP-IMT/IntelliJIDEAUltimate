@@ -1,0 +1,612 @@
+<html><head><base href="https://imageclassifier.ai/"><style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+  }
+  .header {
+    background-color: #333;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+  }
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .header h1 {
+    margin: 0;
+  }
+  .header-icons {
+    display: flex;
+  }
+  .header-icon {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    margin-left: 10px;
+    position: relative;
+  }
+  .header-icon:hover {
+    background-color: #45a049;
+  }
+  .icon-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .toolbar {
+    background-color: #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
+  .toolbar button {
+    margin-right: 10px;
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.3s;
+  }
+  .toolbar button:hover {
+    background-color: #45a049;
+  }
+  .image-workspace {
+    background-color: white;
+    border: 1px solid #ccc;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+  }
+  .progress-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  .progress-bar {
+    flex-grow: 1;
+    background-color: #ddd;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-right: 20px;
+  }
+  .progress {
+    background-color: #4CAF50;
+    height: 100%;
+    width: 42%;
+    transition: width 0.5s ease-in-out;
+  }
+  .counter {
+    text-align: right;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-align: center;
+    text-decoration: none;
+  }
+  .button:hover {
+    background-color: #45a049;
+  }
+  .selection-overlay {
+    position: absolute;
+    border: 2px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.2);
+    pointer-events: none;
+  }
+  .selection-label {
+    position: absolute;
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 5px;
+    font-size: 12px;
+    border-radius: 3px;
+  }
+  .toast-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .toast-success {
+    background-color: #4CAF50;
+  }
+  .toast-error {
+    background-color: #f44336;
+  }
+  .sidebar-right {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 300px;
+    height: 100%;
+    background-color: white;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    transition: right 0.3s;
+    z-index: 1000;
+  }
+  .sidebar-right.open {
+    right: 0;
+  }
+  .sidebar-header {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .sidebar-close {
+    float: right;
+    cursor: pointer;
+  }
+  .message-list {
+    padding: 20px;
+    overflow-y: auto;
+    height: calc(100% - 60px);
+  }
+  .message-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .message-item:hover {
+    background-color: #f0f0f0;
+  }
+  .message-success {
+    border-left: 4px solid #4CAF50;
+  }
+  .message-error {
+    border-left: 4px solid #f44336;
+  }
+  .sidebar-left {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    background-color: #333;
+    transition: left 0.3s;
+    z-index: 1000;
+    color: white;
+  }
+  .sidebar-left.open {
+    left: 0;
+  }
+  .sidebar-toggle {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1001;
+  }
+  .sidebar-menu {
+    padding: 20px;
+  }
+  .sidebar-menu h2 {
+    margin-bottom: 20px;
+  }
+  .sidebar-menu ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  .sidebar-menu li {
+    margin-bottom: 10px;
+  }
+  .sidebar-menu a {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  .sidebar-menu a:hover {
+    text-decoration: underline;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 5px;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .metadata-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  .metadata-table th,
+  .metadata-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  .metadata-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+  }
+  .action-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  .main-content {
+    margin-top: 80px;
+  }
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  .dropdown-content a:hover {
+    background-color: #f1f1f1;
+  }
+  .show {
+    display: block;
+  }
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.3);
+    z-index: 999;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <button class="sidebar-toggle" onclick="toggleLeftSidebar()">☰</button>
+      <h1>Sistema Geral de Classificação (SGC)</h1>
+      <div class="header-icons">
+        <button class="header-icon" onclick="toggleRightSidebar()" title="Avisos de Processamento">
+          ❗
+          <span class="icon-count">3</span>
+        </button>
+        <a href="https://imageclassifier.ai/notifications" class="header-icon" title="Notificações">
+          🔔
+          <span class="icon-count">5</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="main-content">
+    <div class="container">
+      <div class="toolbar">
+        <button>Nenhum</button>
+        <button>Visualizar seleções</button>
+        <button>Criar seleção</button>
+        <button>Editar seleções</button>
+        <button>Zoom</button>
+        <button>Deletar seleção</button>
+      </div>
+      <div class="image-workspace">
+        <img src="urban-street.jpg" alt="Rua urbana movimentada com pedestres, carros e edifícios" width="100%" height="100%">
+        <div class="selection-overlay" style="top: 100px; left: 50px; width: 150px; height: 200px;">
+          <div class="selection-label" style="top: -20px; left: 0;">Edifício</div>
+        </div>
+        <div class="selection-overlay" style="top: 350px; left: 200px; width: 100px; height: 50px;">
+          <div class="selection-label" style="top: -20px; left: 0;">Carro</div>
+        </div>
+        <div class="selection-overlay" style="top: 300px; left: 400px; width: 50px; height: 100px;">
+          <div class="selection-label" style="top: -20px; left: 0;">Pedestre</div>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress"></div>
+        </div>
+        <form method="GET" action="https://imageclassifier.ai/submit" onsubmit="return submitClassification()">
+          <button type="submit" class="button">Submeter Classificação</button>
+        </form>
+      </div>
+      <div class="counter">
+        Imagens classificadas: 21 / 50
+      </div>
+      <div class="action-buttons">
+        <button class="button metadata-button" onclick="openMetadataModal()">Ver Metadados da Imagem</button>
+        <div class="dropdown">
+          <button class="button" onclick="toggleFlagDropdown()">Adicionar Flags</button>
+          <div id="flagDropdown" class="dropdown-content">
+            <a href="#" onclick="addFlag('Importante')">Importante</a>
+            <a href="#" onclick="addFlag('Revisar')">Revisar</a>
+            <a href="#" onclick="addFlag('Problema')">Problema</a>
+            <a href="#" onclick="addFlag('Boa qualidade')">Boa qualidade</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-left" id="sidebarLeft">
+    <div class="sidebar-menu">
+      <h2>Menu</h2>
+      <ul>
+        <li><a href="https://imageclassifier.ai/dashboard">Dashboard</a></li>
+        <li><a href="https://imageclassifier.ai/projects">Projetos</a></li>
+        <li><a href="https://imageclassifier.ai/analytics">Análises</a></li>
+        <li><a href="https://imageclassifier.ai/settings">Configurações</a></li>
+        <li><a href="https://imageclassifier.ai/help">Ajuda</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sidebar-right" id="sidebarRight">
+    <div class="sidebar-header">
+      Avisos de Processamento
+      <span class="sidebar-close" onclick="toggleRightSidebar()">✕</span>
+    </div>
+    <div class="message-list">
+      <div class="message-item message-success" onclick="openProcessingModal('IMG_20230615_144502', 'success')">
+        Processamento concluído com sucesso (IMG_20230615_144502)
+      </div>
+      <div class="message-item message-success" onclick="openProcessingModal('IMG_20230615_143247', 'success')">
+        Processamento concluído com sucesso (IMG_20230615_143247)
+      </div>
+      <div class="message-item message-error" onclick="openProcessingModal('IMG_20230615_141523', 'error')">
+        Erro no processamento (IMG_20230615_141523)
+      </div>
+    </div>
+  </div>
+
+  <div id="metadataModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeMetadataModal()">&times;</span>
+      <h2>Metadados da Imagem</h2>
+      <table class="metadata-table">
+        <tr>
+          <th>Propriedade</th>
+          <th>Valor</th>
+        </tr>
+        <tr>
+          <td>Nome do arquivo</td>
+          <td>urban-street.jpg</td>
+        </tr>
+        <tr>
+          <td>Dimensões</td>
+          <td>1920x1080 pixels</td>
+        </tr>
+        <tr>
+          <td>Tamanho do arquivo</td>
+          <td>2.4 MB</td>
+        </tr>
+        <tr>
+          <td>Data de criação</td>
+          <td>2023-06-15 12:30:45</td>
+        </tr>
+        <tr>
+          <td>Localização</td>
+          <td>São Paulo, Brasil</td>
+        </tr>
+        <tr>
+          <td>Câmera</td>
+          <td>Sony Alpha A7 III</td>
+        </tr>
+        <tr>
+          <td>ISO</td>
+          <td>100</td>
+        </tr>
+        <tr>
+          <td>Abertura</td>
+          <td>f/8</td>
+        </tr>
+        <tr>
+          <td>Velocidade do obturador</td>
+          <td>1/250s</td>
+        </tr>
+        <tr>
+          <td>Distância focal</td>
+          <td>35mm</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div id="processingModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeProcessingModal()">&times;</span>
+      <h2>Detalhes do Processamento</h2>
+      <div id="processingDetails"></div>
+      <button class="button" onclick="reprocessImage()">Reprocessar Imagem</button>
+    </div>
+  </div>
+
+  <div id="toastMessage" class="toast-message"></div>
+
+  <div id="overlay" class="overlay"></div>
+
+  <script>
+    function toggleLeftSidebar() {
+      document.getElementById("sidebarLeft").classList.toggle("open");
+      document.getElementById("overlay").style.display = document.getElementById("sidebarLeft").classList.contains("open") ? "block" : "none";
+    }
+
+    function toggleRightSidebar() {
+      document.getElementById("sidebarRight").classList.toggle("open");
+    }
+
+    function openMetadataModal() {
+      document.getElementById("metadataModal").style.display = "block";
+    }
+
+    function closeMetadataModal() {
+      document.getElementById("metadataModal").style.display = "none";
+    }
+
+    function toggleFlagDropdown() {
+      document.getElementById("flagDropdown").classList.toggle("show");
+    }
+
+    function addFlag(flag) {
+      console.log("Flag added:", flag);
+      showToast(`Flag "${flag}" adicionada com sucesso!`, 'success');
+      toggleFlagDropdown();
+    }
+
+    function submitClassification() {
+      showToast('Classificação submetida com sucesso!', 'success');
+      updateProgress();
+      return false;
+    }
+
+    function showToast(message, type) {
+      const toast = document.getElementById('toastMessage');
+      toast.textContent = message;
+      toast.className = 'toast-message ' + (type === 'success' ? 'toast-success' : 'toast-error');
+      toast.style.opacity = 1;
+      setTimeout(() => {
+        toast.style.opacity = 0;
+      }, 3000);
+    }
+
+    function updateProgress() {
+      const progress = document.querySelector('.progress');
+      const counter = document.querySelector('.counter');
+      let current = parseInt(counter.textContent.split('/')[0].trim());
+      let total = parseInt(counter.textContent.split('/')[1].trim());
+      current++;
+      counter.textContent = `Imagens classificadas: ${current} / ${total}`;
+      progress.style.width = `${(current / total) * 100}%`;
+    }
+
+    function openProcessingModal(imageId, status) {
+      const modal = document.getElementById('processingModal');
+      const details = document.getElementById('processingDetails');
+      details.innerHTML = `
+        <p><strong>ID da Imagem:</strong> ${imageId}</p>
+        <p><strong>Status:</strong> ${status === 'success' ? 'Processado com sucesso' : 'Erro no processamento'}</p>
+        <p><strong>Data e Hora:</strong> ${new Date().toLocaleString()}</p>
+        ${status === 'error' ? '<p><strong>Erro:</strong> Falha na detecção de objetos. Por favor, reprocesse a imagem.</p>' : ''}
+      `;
+      modal.style.display = 'block';
+    }
+
+    function closeProcessingModal() {
+      document.getElementById('processingModal').style.display = 'none';
+    }
+
+    function reprocessImage() {
+      showToast('Imagem enviada para reprocessamento', 'success');
+      closeProcessingModal();
+    }
+
+    document.addEventListener('click', function(event) {
+      const leftSidebar = document.getElementById('sidebarLeft');
+      const overlay = document.getElementById('overlay');
+      if (leftSidebar.classList.contains('open') && !event.target.closest('.sidebar-left') && !event.target.closest('.sidebar-toggle')) {
+        leftSidebar.classList.remove('open');
+        overlay.style.display = 'none';
+      }
+    });
+
+    window.onclick = function(event) {
+      if (!event.target.matches('.button')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        for (var i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>

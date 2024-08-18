@@ -2,11 +2,11 @@ import dotenv from 'dotenv'
 import express from 'express'
 import axios from 'axios'
 import uuid from 'uuid'
-
+import cors from 'cors';
 dotenv.config()
 const app = express()
 const {Pool} = require('pg')
-
+app.use(cors());
 const { PORT, USER, PASSWORD } = process.env
 const SERVICE_NAME = "AuthService"
 

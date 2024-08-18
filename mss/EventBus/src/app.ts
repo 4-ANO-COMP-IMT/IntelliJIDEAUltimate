@@ -1,11 +1,12 @@
 import dotenv from 'dotenv'
 dotenv.config()
+import cors from 'cors';
 import express from 'express'
 import axios from 'axios'
 const app = express()
 app.use(express.json())
 const {Pool} = require('pg')
-
+app.use(cors());
 const { PORT, USER, PASSWORD } = process.env
 
 const pool = new Pool({

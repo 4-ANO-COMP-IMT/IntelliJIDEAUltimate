@@ -1,11 +1,15 @@
 
 // region setup
 import dotenv from 'dotenv'
+import cors from 'cors';
 dotenv.config()
 import express from 'express'
 import axios from 'axios'
 import {validateHeaderName} from "node:http";
-const app = express()
+
+
+const app = express();
+app.use(cors());
 app.use(express.json())
 const { PORT, USER, PASSWORD } = process.env
 const SERVICE_NAME = "RegisterUserService"
