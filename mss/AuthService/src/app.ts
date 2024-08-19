@@ -1,7 +1,7 @@
 import dotenv from 'dotenv'
 import express from 'express'
 import axios from 'axios'
-import uuid from 'uuid'
+import {v4 as uuid_v4} from 'uuid'
 
 dotenv.config()
 const app = express()
@@ -22,8 +22,8 @@ pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, 
 
 
 app.use(express.json())
-const cors = require('cors');
-app.use(cors());
+const cors = require('cors')
+app.use(cors())
 
 
 //externo
@@ -56,7 +56,7 @@ interface UserValidatedEvent{
 }
 
 let generateSession = async function (username: string): Promise<UserValidatedEvent>{
-    let session_token = uuid.v4()
+    let session_token = uuid_v4()
     let result = await pool.query('SELECT user_id FROM users WHERE user_name = $1', [username])
     let user_id = result.rows[0].user_id
     let insertResult = await pool.query('INSERT INTO sessions (session_token, session_timestamp, user_id) VALUES ($1, $2, $3) RETURNING *', [session_token, new Date().toISOString(), user_id])

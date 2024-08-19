@@ -4,6 +4,8 @@ import express from 'express'
 import axios from 'axios'
 const app = express()
 app.use(express.json())
+const cors = require('cors')
+app.use(cors())
 const {Pool} = require('pg')
 
 const { PORT, USER, PASSWORD } = process.env
