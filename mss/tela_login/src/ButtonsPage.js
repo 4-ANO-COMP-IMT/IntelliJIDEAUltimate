@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const ButtonsPage = () => {
@@ -10,8 +9,8 @@ const ButtonsPage = () => {
     <div className="buttons-page-container">
       <h2>Buttons Page</h2>
       <img
-        src={`https://source.unsplash.com/random/800x600`}
-        alt="Random"
+        src="https://source.unsplash.com/random/800x600"
+        alt="A randomly selected image from Unsplash"
         style={{ width: '100%', height: 'auto', marginBottom: '20px' }}
       />
       <div className="buttons-container">
@@ -19,7 +18,8 @@ const ButtonsPage = () => {
           <button
             key={index}
             onClick={() => handleButtonClick(index + 1)}
-            style={{ margin: '10px' }}
+            style={{ margin: '10px', padding: '10px 20px', fontSize: '16px' }}
+            aria-label={`Button number ${index + 1}`}
           >
             Button {index + 1}
           </button>

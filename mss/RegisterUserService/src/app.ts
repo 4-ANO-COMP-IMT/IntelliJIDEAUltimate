@@ -6,6 +6,8 @@ import axios from "axios";
 import { validateHeaderName } from "node:http";
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 const { PORT, USER, PASSWORD } = process.env;
 const SERVICE_NAME = "RegisterUserService";
 const { Pool } = require("pg");
@@ -28,10 +30,10 @@ CREATE table users (
 	user_is_admin BOOLEAN
 );
 
-pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, session_token TEXT, session_timestamp TIMESTAMP, user_id INTEGER, FOREIGN KEY (user_id) REFERENCES users(user_id))').catch((e: string) => console.log(e))
 
 
 */
+pool.query('CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, session_token TEXT, session_timestamp TIMESTAMP, user_id INTEGER, FOREIGN KEY (user_id) REFERENCES users(user_id))').catch((e: string) => console.log(e))
 
 app.use(express.json());
 // endregion
