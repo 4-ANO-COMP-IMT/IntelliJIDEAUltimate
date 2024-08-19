@@ -1,18 +1,19 @@
-
-
-import React, { useState } from 'react';
-import './App.css';
-import Login from './Login';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 import ButtonsPage from './ButtonsPage';
 
-function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
-
+const App = () => {
   return (
-    <div className="App">
-      {loggedIn ? <ButtonsPage /> : <Login onLogin={() => setLoggedIn(true)} />}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/buttons" element={<ButtonsPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
