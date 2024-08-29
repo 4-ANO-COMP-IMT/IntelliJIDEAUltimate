@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  auth_service:
+    build: ./mss/AuthService
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres_auth
+      - rabbitmq
+      - redis
+    environment:
+      - DATABASE_HOST=postgres_auth
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecretpassword
+      - DATABASE_NAME=authdb
+    networks:
+      - backend
+
+  postgres_auth:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: authdb
+    ports:
+      - "5433:5432"  # Porta diferente para cada instância de Postgres
+    volumes:
+      - pgdata_auth:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  register_service:
+    build: ./mss/RegisterUserService
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres_register
+      - rabbitmq
+      - redis
+    environment:
+      - DATABASE_HOST=postgres_register
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecretpassword
+      - DATABASE_NAME=registerdb
+    networks:
+      - backend
+
+  postgres_register:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: registerdb
+    ports:
+      - "5434:5432"  # Porta diferente para cada instância de Postgres
+    volumes:
+      - pgdata_register:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+volumes:
+  pgdata_auth:
+  pgdata_register:
+
+networks:
+  backend:
+    driver: bridge

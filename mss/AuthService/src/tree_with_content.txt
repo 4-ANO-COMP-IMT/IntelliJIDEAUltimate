@@ -1,0 +1,481 @@
+├── config/
+│   └── env.ts
+│       ------------------------------------
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// RABBITMQ_HOST=rabbitmq
+// RABBITMQ_PORT=5672
+// RABBITMQ_MANAGEMENT_PORT=15672
+// RABBITMQ_DEFAULT_USER=rabbitmq
+// RABBITMQ_DEFAULT_PASS=rabbitmq
+
+
+export const {
+  PORT,
+  DATABASE_HOST,
+  DATABASE_PORT,
+  DATABASE_USER,
+  DATABASE_PASSWORD,
+  DATABASE_NAME,
+  REDIS_HOST,
+  REDIS_PORT,
+  REDIS_PASSWORD,
+  RABBITMQ_HOST,
+  RABBITMQ_PORT,
+  RABBITMQ_USER,
+  RABBITMQ_PASSWORD,
+  SERVICE_NAME,
+  JWT_SECRET,
+  ENCRYPTION_KEY,
+  NODE_ENV
+} = process.env;
+
+
+
+
+├── controllers/
+│   ├── loginController.ts
+│   │   ------------------------------------
+import { Request, Response } from 'express';
+import { validateLogin } from '../services/validationService';
+import { createSession } from '../services/sessionService';
+import { publishToFanoutExchange } from '../services/rabbitMQService';
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { username, password } = req.body;
+    // Validate user credentials
+    console.log('Validating login');
+    console.log('username:', username);
+    console.log('password:', password);
+    console.log('validating login');
+    var user_id = await validateLogin(username, password);
+    if (!user_id) {
+      console.log('Invalid credentials');
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+    // Create session token
+    var sessionToken = await createSession(user_id);
+    if (!sessionToken) {
+      console.log('could not create session');
+      return res.status(500).json({ message: 'could not create session' }); 
+    }
+
+    console.log('publishing to queue');
+    await publishToFanoutExchange('user_logged_in_exchange', { user_id, sessionToken });
+    
+    console.log('Login successful');
+    res.json({ message: 'Login successful' , sessionToken });
+  } 
+  catch (error) {
+    console.log('error:', error);
+    res.status(500).json({ message: `error: ${error}` });
+  }
+
+};
+
+
+
+
+│   └── logoutController.ts
+│       ------------------------------------
+import { Request, Response } from 'express';
+import { deleteSession } from '../services/sessionService';
+
+export const logout = async (req: Request, res: Response) => {
+  // Implementação do logout
+  try {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ message: 'No credentials' });
+    }
+    await deleteSession(token);
+    res.json({ message: 'Logout successful' });
+  }catch(error){
+    res.status(401).json({ message: 'Invalid token' });
+  }
+  
+};
+
+├── database/
+│   ├── connection.ts
+│   │   ------------------------------------
+import { Pool } from 'pg';
+import { DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME } from '../config/env';
+
+export const pool = new Pool({
+  host: DATABASE_HOST,
+  port: Number(DATABASE_PORT),
+  user: DATABASE_USER,
+  password: DATABASE_PASSWORD,
+  database: DATABASE_NAME,
+});
+
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+
+│   ├── session/
+│   │   ├── interfaces.ts
+│   │   │   ------------------------------------
+// TypeScript type definition for a session
+export type Session = {
+    session_id: number;
+    user_id: number;
+    session_token: string;
+    session_expiry_date: Date;
+  };
+
+│   │   └── queries.ts
+│   │       ------------------------------------
+import { pool } from '../connection';
+import { Session } from './interfaces';
+
+export const createSessionQuery = 'INSERT INTO sessions (user_id, session_token, session_expiry) VALUES ($1, $2, $3) RETURNING *';
+export const getSessionByTokenQuery = 'SELECT * FROM sessions WHERE session_token = $1';
+export const deleteSessionQuery = 'DELETE FROM sessions WHERE session_token = $1';
+export const deleteAllSessionsQuery = 'DELETE FROM sessions WHERE user_id = $1';
+export const deleteExpiredSessionsQuery = 'DELETE FROM sessions WHERE session_expiry < $1';
+export const deleteAllSessionsByUserIdQuery = 'DELETE FROM sessions WHERE user_id = $1';
+
+// CREATE TABLE sessions (
+//     session_id SERIAL PRIMARY KEY,
+//     user_id INT NOT NULL,
+//     session_token VARCHAR(255) UNIQUE NOT NULL,
+//     session_expiry TIMESTAMP NOT NULL
+// );
+
+
+export const createSession = async (userId: number, sessionToken: string, sessionExpiry: Date): Promise<Session> => {
+    const result = await pool.query(createSessionQuery, [userId, sessionToken, sessionExpiry]);
+    return result.rows[0];
+}
+
+export const getSessionByToken = async (sessionToken: string): Promise<Session | null> => {
+    const result = await pool.query(getSessionByTokenQuery, [sessionToken]);
+    return result.rows[0] || null;
+}
+
+export const deleteSession = async (sessionToken: string): Promise<void> => {
+    await pool.query(deleteSessionQuery, [sessionToken]);
+}
+
+export const deleteAllSessions = async (userId: number): Promise<void> => {
+    await pool.query(deleteAllSessionsQuery, [userId]);
+}
+
+export const deleteExpiredSessions = async (currentDate: Date): Promise<void> => {
+    await pool.query(deleteExpiredSessionsQuery, [currentDate]);
+}
+
+export const deleteAllSessionsByUserId = async (userId: number): Promise<void> => {
+    await pool.query(deleteAllSessionsByUserIdQuery, [userId]);
+}
+
+
+│   └── user/
+│       ├── interfaces.ts
+│       │   ------------------------------------
+export type User = {
+    is_admin: boolean;
+    user_id: number;
+    username: string;
+    password: string;
+  };
+
+
+│       └── queries.ts
+│           ------------------------------------
+import { pool } from '../connection';
+import { User } from './interfaces'
+
+// username, password, is_admin
+
+export const getUserByIdQuery = 'SELECT * FROM users WHERE user_id = $1';
+export const getUserByUsernameQuery = 'SELECT * FROM users WHERE username = $1';
+export const createUserQuery = 'INSERT INTO users (username, password, is_admin) VALUES ($1, $2, $3) RETURNING *';
+export const deleteUserQuery = 'DELETE FROM users WHERE user_id = $1';
+export const updateUserPasswordQuery = 'UPDATE users SET password = $1 WHERE user_id = $2';
+export const updateUserUsernameQuery = 'UPDATE users SET username = $1 WHERE user_id = $2';
+export const updateUserQuery = 'UPDATE users SET username = $1, password = $2 WHERE user_id = $3';
+export const getUsersQuery = 'SELECT * FROM users';
+
+
+// CREATE TABLE users (
+//     user_id SERIAL PRIMARY KEY,
+//     username VARCHAR(255) UNIQUE NOT NULL,
+//     password VARCHAR(255) NOT NULL,
+//     is_admin BOOLEAN NOT NULL
+// );
+
+export const getUserById = async (userId: number): Promise<User | null> => {
+  const result = await pool.query(getUserByIdQuery, [userId]);
+  return result.rows[0] || null;
+}
+
+export const getUserByUsername = async (username: string): Promise<User | null> => {
+  console.log('getUserByUsernameQuery:', getUserByUsernameQuery);
+  const result = await pool.query(getUserByUsernameQuery, [username]);
+  return result.rows[0] || null;
+}
+
+export const createUser = async (username: string, password: string, is_admin: boolean): Promise<User> => {
+  const result = await pool.query(createUserQuery, [username, password, is_admin]);
+  return result.rows[0];
+}
+
+export const deleteUser = async (userId: number): Promise<void> => {
+  await pool.query(deleteUserQuery, [userId]);
+}
+
+export const updateUserPassword = async (userId: number, newPassword: string): Promise<void> => {
+  await pool.query(updateUserPasswordQuery, [newPassword, userId]);
+}
+
+export const updateUserUsername = async (userId: number, newUsername: string): Promise<void> => {
+  await pool.query(updateUserUsernameQuery, [newUsername, userId]);
+}
+
+export const updateUser = async (userId: number, newUsername: string, newPassword: string): Promise<void> => {
+  await pool.query(updateUserQuery, [newUsername, newPassword, userId]);
+}
+
+export const getUsers = async (): Promise<User[]> => {
+  const result = await pool.query(getUsersQuery);
+  return result.rows;
+}
+
+
+
+├── index.ts
+│   ------------------------------------
+import express from 'express';
+import routes from './routes';
+import { PORT } from './config/env';
+import { errorHandler } from './middlewares/errorHandler';
+import cors from 'cors';
+
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+app.use('/api', routes);
+app.use((req, res) => {console.log("retornando ao client")});
+
+app.use(errorHandler);
+
+async function startServer() {
+    //test if postgres is running
+    //test if rabbitmq is running
+    //test if redis is running
+
+    //trow error if any of the services is not running
+    await app.listen(PORT);
+    console.log(`Server running on port ${PORT}`);
+}
+
+startServer();
+
+
+├── middlewares/
+│   ├── authMiddleware.ts
+│   │   ------------------------------------
+import { Request, Response, NextFunction } from 'express';
+import {validateToken,getUserIdFromToken} from '../services/sessionService'
+import { getUserById } from '../database/user/queries'
+
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+
+  // Check if token is valid
+  const is_valid = validateToken(token)
+  if (!is_valid) return res.status(401).json({ message: 'Invalid token' });
+
+  next();
+};
+
+
+export const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ message: 'No token provided' });
+
+  // Check if token is valid
+  const is_valid = validateToken(token)
+  if (!is_valid) return res.status(401).json({ message: 'Invalid token' });
+
+  // Check if user is admin
+  const user_id = await getUserIdFromToken(token)
+  
+  if (!user_id) return res.status(401).json({ message: 'Invalid token' });
+
+  const user = await getUserById(user_id)
+
+  if (user && !user.is_admin) return res.status(403).json({ message: 'Unauthorized' });
+
+  next();
+}
+
+
+
+│   └── errorHandler.ts
+│       ------------------------------------
+import { Request, Response, NextFunction } from 'express';
+
+export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+};
+
+
+├── models/
+├── routes/
+│   └── index.ts
+│       ------------------------------------
+import { login } from '../controllers/loginController';
+import { logout } from '../controllers/logoutController';
+import { Router } from 'express';
+
+const router = Router();
+
+router.post('/login', login);
+router.post('/logout', logout);
+
+export default router;
+
+
+├── services/
+│   ├── rabbitMQService.ts
+│   │   ------------------------------------
+import amqp from 'amqplib';
+import { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD } from '../config/env';
+
+const rabbitMQUrl = `amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`;
+
+// Nome da exchange fanout
+
+// Função para publicar na exchange fanout
+export const publishToFanoutExchange = async (exchangeName: string, data: any) => {
+  console.log('Publishing to fanout exchange');
+  console.log('data:', data);
+  console.log('rabbitMQUrl:', rabbitMQUrl);
+  const connection = await amqp.connect(rabbitMQUrl);
+  const channel = await connection.createChannel();
+
+  // Declarando a exchange do tipo 'fanout'
+  await channel.assertExchange(exchangeName, 'fanout', { durable: false });
+
+  // Publicando a mensagem na exchange
+  channel.publish(exchangeName, '', Buffer.from(JSON.stringify(data)));
+  console.log('Mensagem publicada na exchange fanout');
+
+  setTimeout(() => {
+    connection.close();
+  }, 500);
+};
+
+// Função para consumir mensagens de uma fila associada à exchange fanout
+export const consumeFromQueue = async (exchangeName: string,queueName: string) => {
+  const connection = await amqp.connect(rabbitMQUrl);
+  const channel = await connection.createChannel();
+
+  // Declarando a exchange do tipo 'fanout'
+  await channel.assertExchange(exchangeName, 'fanout', { durable: false });
+
+  // Declarando a fila e associando-a à exchange
+  await channel.assertQueue(queueName, { durable: true });
+  await channel.bindQueue(queueName, exchangeName, '');
+  // Consumindo mensagens da fila
+  channel.consume(queueName, (message) => {
+    if (message) {
+      console.log('Mensagem recebida da fila:', queueName);
+      console.log(message.content.toString());
+      channel.ack(message);  // Confirma a mensagem como processada
+    }
+  }, {
+    noAck: false  // Para garantir que as mensagens sejam confirmadas manualmente após o processamento
+  });
+
+  console.log(`Esperando mensagens na fila '${queueName}' associada à exchange '${exchangeName}'...`);
+};
+
+
+│   ├── sessionService.ts
+│   │   ------------------------------------
+import { pool } from '../database/connection';
+import { Session } from '../database/session/interfaces';
+import {createSession as createSessionDB,deleteSession as deleteSessionDB}  from '../database/session/queries';
+import { v4 as uuidv4 } from 'uuid';
+
+export async function deleteSession(sessionToken: string){
+    // Delete the session from the database
+    deleteSessionDB(sessionToken);
+}
+
+export async function createSession(user_id: number){
+    // Generate a random uuid session token
+    const sessionToken = uuidv4();
+
+    // Set expiry date to 1 day from now
+    const sessionExpiry = new Date();
+    sessionExpiry.setDate(sessionExpiry.getDate() + 1);
+   
+    return await createSessionDB(user_id, sessionToken, sessionExpiry);
+}
+
+export async function validateToken(sessionToken: string): Promise<boolean> {
+    // Query the database to check if the session token is valid
+    const session = await pool.query<Session>('SELECT * FROM sessions WHERE session_token = $1', [sessionToken]);
+
+    // If a session is found and the expiry date is in the future, the token is valid
+    if (session.rows.length > 0 && session.rows[0].session_expiry_date > new Date()) {
+        return true;
+    }
+
+    return false;
+}
+
+export async function getUserIdFromToken(sessionToken: string): Promise<number | null> {
+    // Query the database to get the user ID associated with the session token
+    const session = await pool.query<Session>('SELECT * FROM sessions WHERE session_token = $1', [sessionToken]);
+
+    // If a session is found and the expiry date is in the future, return the user ID
+    if (session.rows.length > 0 && session.rows[0].session_expiry_date > new Date()) {
+        return session.rows[0].user_id;
+    }
+
+    return null;
+}
+
+│   └── validationService.ts
+│       ------------------------------------
+import { pool } from '../database/connection';
+import { User } from '../database/user/interfaces'
+import {getUserByUsername } from '../database/user/queries';
+
+export const validateLogin = async (username: string, password: string): Promise<number|null> => {
+  var user = await getUserByUsername(username);
+  if (user == null) {
+    return null;
+  }
+
+  if (user.password === password) {
+    return user.user_id;
+  }
+
+  return null;
+}
+
+
+
+
+
+├── tree_with_content.txt
+│   ------------------------------------
+
+
+└── utils/
