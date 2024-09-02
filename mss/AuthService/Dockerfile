@@ -8,8 +8,9 @@ WORKDIR /app
 # Copiar os arquivos do projeto para o contêiner
 COPY . .
 
-# Instalar dependências do Node.js
-RUN npm install 
+RUN npx npm-check-updates -u
+RUN npm i
+
 #--only=production
 RUN npm run build
 
