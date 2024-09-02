@@ -1,0 +1,17 @@
+npm init -y
+npm install typescript --save-dev
+npm install @types/node --save-dev
+
+
+npm install react react-dom
+npm install --save-dev typescript @types/react @types/react-dom
+
+npx tsc --init --rootDir src --outDir build \
+--esModuleInterop --resolveJsonModule --lib es6 \
+--module commonjs --allowJs true --noImplicitAny true
+
+npm install --save-dev webpack webpack-cli webpack-dev-server html-webpack-plugin ts-loader
+npm install --save-dev eslint prettier eslint-plugin-react eslint-plugin-react-hooks eslint-config-prettier eslint-plugin-prettier @typescript-eslint/eslint-plugin @typescript-eslint/parser
+
+npm install bootstrap @types/bootstrap
+npm install konva react-konva @types/konva

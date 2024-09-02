@@ -18,16 +18,17 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:2000/register', {
+      const response = await axios.post('http://localhost:3001/register', {
         new_username: username,
         new_password: password,
       });
 
-      alert('Registration successful!');
+      alert(response.data);
       // Redirect to an HTML file
       window.location.href = '...mss/telas/src/tLLS63QiWrqwR6MwI.html';
     } catch (error) {
-      alert('Registration failed. Please try again.');
+      alert(error);
+      //alert('Registration failed. Please try again.');
     }
   };
 

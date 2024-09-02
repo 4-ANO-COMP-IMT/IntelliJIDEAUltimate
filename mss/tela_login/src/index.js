@@ -4,6 +4,26 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+
+import Cookies from 'js-cookie';
+import axios from 'axios';
+
+axios.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get('authToken'); // Recupera o token do cookie
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
