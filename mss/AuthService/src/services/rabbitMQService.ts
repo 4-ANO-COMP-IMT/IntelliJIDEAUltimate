@@ -5,6 +5,7 @@ const rabbitMQUrl = `amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOS
 
 // Nome da exchange fanout
 
+console.log('rabbitMQUrl:', rabbitMQUrl);
 // Função para publicar na exchange fanout
 export const publishToFanoutExchange = async (exchangeName: string, data: any) => {
   console.log('Publishing to fanout exchange');
