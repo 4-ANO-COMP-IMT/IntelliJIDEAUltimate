@@ -1,0 +1,26 @@
+{
+    "name": "@intelij-ultimate/postgres-utility",
+    "version": "1.0.4",
+    "description": "A postgres utility library for Node.js with TypeScript",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/seuusuario/my-rabbitmq-library.git"
+    },
+    "author": "Seu Nome",
+    "license": "MIT",
+    "dependencies": {
+        "dotenv": "^16.4.5",
+        "pg": "^8.12.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/dotenv": "^8.2.0",
+        "@types/pg": "^8.11.8"
+    }
+}

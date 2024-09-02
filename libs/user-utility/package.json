@@ -1,0 +1,26 @@
+{
+    "name": "@intelij-ultimate/user-utility",
+    "version": "1.0.3",
+    "description": "A user utility library for Node.js with TypeScript",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/seuusuario/my-rabbitmq-library.git"
+    },
+    "author": "Seu Nome",
+    "license": "MIT",
+    "dependencies": {
+        "@intelij-ultimate/postgres-utility": "^1.0.4",
+        "@intelij-ultimate/rabbitmq-utility": "^1.0.20",
+        "amqplib": "^0.10.4"
+    },
+    "devDependencies": {
+        "@types/amqplib": "^0.10.5",
+        "typescript": "^5.5.4"
+    }
+}
