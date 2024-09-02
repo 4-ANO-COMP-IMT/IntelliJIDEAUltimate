@@ -4,6 +4,7 @@ import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
 import ButtonsPage from './ButtonsPage';
 
+// Start APP
 const App = () => {
   return (
     <Router>
