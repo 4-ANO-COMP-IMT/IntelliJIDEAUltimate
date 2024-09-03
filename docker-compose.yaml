@@ -1,14 +1,13 @@
-version: '3.8'
-
 services:
   auth_service:
     build: ./mss/AuthService
     ports:
       - "3000:3000"
     depends_on:
-      - postgres_auth
-      - rabbitmq
-      - redis
+      postgres_auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_auth
       - DATABASE_PORT=5432
@@ -25,7 +24,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: authdb
     ports:
-      - "5433:5432"  # Porta diferente para cada instância de Postgres
+      - "5433:5432"
     volumes:
       - pgdata_auth:/var/lib/postgresql/data
     networks:
@@ -41,9 +40,10 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - postgres_register
-      - rabbitmq
-      - redis
+      postgres_register:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_register
       - DATABASE_PORT=5432
@@ -60,7 +60,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: registerdb
     ports:
-      - "5434:5432"  # Porta diferente para cada instância de Postgres
+      - "5434:5432"
     volumes:
       - pgdata_register:/var/lib/postgresql/data
     networks:
@@ -76,9 +76,10 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - postgres_classification
-      - rabbitmq
-      - redis
+      postgres_classification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_classification
       - DATABASE_PORT=5432
@@ -87,6 +88,16 @@ services:
       - DATABASE_NAME=classificationdb
     networks:
       - backend
+    develop:
+      watch:
+        #- action: sync
+        #  path: ./mss/ClassificationService
+        #  target: ./ClassificationService
+        #  ignore:
+        #    - node_modules/
+        - action: rebuild
+          path: ./mss/ClassificationService
+
 
   postgres_classification:
     image: postgres:latest
@@ -95,7 +106,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: classificationdb
     ports:
-      - "5435:5432"  # Porta diferente para cada instância de Postgres
+      - "5435:5432"
     volumes:
       - pgdata_classification:/var/lib/postgresql/data
     networks:
@@ -116,6 +127,11 @@ services:
       RABBITMQ_DEFAULT_PASS: rabbitmq
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:latest
