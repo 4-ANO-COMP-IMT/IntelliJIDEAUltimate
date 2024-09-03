@@ -20,7 +20,12 @@ async function startServer() {
     console.log('stop waiting');
 
 
-    
+    let connection = await connectToRabbitMQ();
+
+    let consumers: Consumer[] = [
+        LoginConsumer.getInstance()
+    ];
+    startConsuming(connection, consumers);
 
 
     await app.listen(PORT);
