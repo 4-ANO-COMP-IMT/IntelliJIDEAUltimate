@@ -1,6 +1,6 @@
 {
     "name": "@intelij-ultimate/postgres-utility",
-    "version": "1.0.4",
+    "version": "1.0.6",
     "description": "A postgres utility library for Node.js with TypeScript",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
