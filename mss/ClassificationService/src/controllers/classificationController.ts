@@ -18,7 +18,7 @@ export const createClassification = async function (req: Request, res: Response)
         res.status(200).json({message: "Classificação inserida", classificacao: insertedRectangles});
     }
     catch (err: any) {
-        res.status(500).json({message: "Erro ao inserir no BD, Rollback executado", error: err.message || "Erro desconhecido"});
+        res.status(500).json({message: "Erro ao inserir no BD, provocando Rollback", error: err.message || "Erro desconhecido"});
     }
     
 }

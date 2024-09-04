@@ -88,15 +88,6 @@ services:
       - DATABASE_NAME=classificationdb
     networks:
       - backend
-    develop:
-      watch:
-        #- action: sync
-        #  path: ./mss/ClassificationService
-        #  target: ./ClassificationService
-        #  ignore:
-        #    - node_modules/
-        - action: rebuild
-          path: ./mss/ClassificationService
 
 
   postgres_classification:
