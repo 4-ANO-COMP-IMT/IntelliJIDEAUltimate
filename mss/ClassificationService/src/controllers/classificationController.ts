@@ -11,10 +11,16 @@ export const createClassification = async function (req: Request, res: Response)
     if(!user_id) return res.status(401).json({ message: 'Invalid token' });
 
     let rectangles: RectangleReq[] = req.body.rectangles;
-    let insertedRectangles: RectangleDB[] = await insertClassification(rectangles, user_id);
 
-    console.log("classificationController: classificação inserida");
-    res.status(200).json({message: "Classificação inserida", classificacao: insertedRectangles});
+    try {
+        let insertedRectangles: RectangleDB[] = await insertClassification(rectangles, user_id).catch();
+        console.log("classificationController: classificação inserida");
+        res.status(200).json({message: "Classificação inserida", classificacao: insertedRectangles});
+    }
+    catch (err: any) {
+        res.status(500).json({message: "Erro ao inserir no BD, Rollback executado", error: err.message || "Erro desconhecido"});
+    }
+    
 }
 
 export const getClassificationById = function (req: Request, res: Response) {
