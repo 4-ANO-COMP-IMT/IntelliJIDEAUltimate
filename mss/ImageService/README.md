@@ -1,0 +1,1 @@
+esse microsservico ele recebe um usuario e senha, consulta no banco para ver se o usuario e senha existem e estão certos, cria uma entrada no banco de dados de sessão replica no rabbitMQ e retorna o id da sessão. alem disso, ele tambem encerra uma sessão passando um id e replica no rabbitMQ e retorna a informação de sucesso ou falha para o usuario final
