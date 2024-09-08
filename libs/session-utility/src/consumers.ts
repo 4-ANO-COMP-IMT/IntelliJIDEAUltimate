@@ -1,52 +1,33 @@
 import { pool } from "@intelij-ultimate/postgres-utility";
-import { Consumer } from "@intelij-ultimate/rabbitmq-utility";
-import amqp from 'amqplib';
+import { ConsumerSingleton } from "@intelij-ultimate/rabbitmq-utility";
 import { Session } from "./interfaces";
+import { on_login_topic, on_logout_topic } from "./topics";
 
-export class LoginConsumer implements Consumer {
-    private static instance: LoginConsumer | null = null;
-
-    private constructor() {}
-
-    static getInstance(): LoginConsumer {
-        if (!LoginConsumer.instance) {
-            LoginConsumer.instance = new LoginConsumer();
+export class LoginConsumerSingleton extends ConsumerSingleton<Session> {
+    protected async processMessage(data: Session): Promise<boolean> {
+        try{
+            const result = await pool.query('INSERT INTO sessions (user_id, session_token, session_expiry) VALUES ($1, $2, $3) RETURNING *', [data.user_id, data.session_token, data.session_expiry]);
+            return true;
+        }catch(error){
+            return false;
         }
-        return LoginConsumer.instance;
+
     }
-
-    queue: string = "register_user_service-on_login-queue";
-    exchange: string = "on_login-exchange";
-    query = `INSERT INTO sessions (session_id, user_id, session_token, session_expiry) VALUES ($1, $2, $3, $4)`;
-
-    async consumeFunction(msg: amqp.Message | null, channel: amqp.Channel) {
-        let session: Session = JSON.parse(msg!.content.toString());    
-        console.log('Received session:', session);
-        await pool.query(this.query, [session.session_id, session.user_id, session.session_token, session.session_expiry]);
-        channel.ack(msg!); 
+    constructor(serviceName: string) {
+        super(serviceName, on_login_topic);
     }
 }
 
-export class LogoutConsumer implements Consumer {
-    private static instance: LogoutConsumer | null = null;
-
-    private constructor() {}
-
-    static getInstance(): LogoutConsumer {
-        if (!LogoutConsumer.instance) {
-            LogoutConsumer.instance = new LogoutConsumer();
+export class LogoutConsumerSingleton extends ConsumerSingleton<Session> {
+    protected async processMessage(data: Session): Promise<boolean> {
+        try{
+            await pool.query('DELETE FROM sessions WHERE session_token = $1', [data.session_token]);
+            return true;
+        }catch(error){
+            return false;
         }
-        return LogoutConsumer.instance;
     }
-
-    queue: string = "register_user_service-on_logout-queue";
-    exchange: string = "on_logout-exchange";
-    query = `DELETE FROM sessions WHERE session_token = $1`;
-
-    async consumeFunction(msg: amqp.Message | null, channel: amqp.Channel) {
-        let session: Session = JSON.parse(msg!.content.toString());    
-        console.log('Received session_token:', session);
-        await pool.query(this.query, [session.session_token]);
-        channel.ack(msg!); 
+    constructor(serviceName: string) {
+        super(serviceName, on_logout_topic);
     }
 }
