@@ -1,0 +1,1 @@
+export const on_registration_topic = "on_registration";
