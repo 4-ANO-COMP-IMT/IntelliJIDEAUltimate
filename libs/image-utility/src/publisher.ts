@@ -2,11 +2,11 @@ import * as amqp from 'amqplib';
 import { createChannel, PublisherSingleton } from '@intelij-ultimate/rabbitmq-utility';
 
 import { Image } from './interfaces';
-import { on_image_topic } from './topics';
+import { on_image_received_topic } from './topics';
 
 export class ImagePublisherSingleton extends PublisherSingleton<Image> {
     constructor() {
-        super(on_image_topic);
+        super(on_image_received_topic);
     }
 }
 
