@@ -110,35 +110,6 @@ services:
       retries: 5
       
       
-  allocation_service:
-    build: ./mss/AllocationService
-    ports:
-      - "3003:3003"
-    depends_on:
-      - postgres_allocation
-      - rabbitmq
-      - redis
-    environment:
-      - DATABASE_HOST=postgres_auth
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=mysecretpassword
-      - DATABASE_NAME=authdb
-    networks:
-      - backend
-
-  postgres_allocation:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: authdb
-    ports:
-      - "5436:5432"  # Porta diferente para cada instância de Postgres
-    volumes:
-      - pgdata_allocation:/var/lib/postgresql/data
-      
-      
   classification_service:
     build: ./mss/ClassificationService
     ports:
