@@ -13,6 +13,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   if (!session) return res.status(401).json({ message: 'Invalid token' });
 
   if (session.session_expiry < new Date()) return res.status(401).json({ message: 'Token expired' });
+
+  req.body.user_id = session.user_id;
   next();
 };
 
@@ -35,6 +37,7 @@ export const adminMiddleware = async (req: Request, res: Response, next: NextFun
 
     if ( !user.is_admin) return res.status(403).json({ message: 'Unauthorized' });
 
+    req.body.user_id = session.user_id;
     next();
 }
 

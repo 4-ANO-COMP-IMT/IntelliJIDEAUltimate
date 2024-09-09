@@ -1,44 +1,63 @@
 import amqp from 'amqplib';
-import { Consumer } from './consumer';
 import { RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER, RABBITMQ_PASSWORD } from './config/env';
 
 export const rabbitMQUrl = `amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOST}:${RABBITMQ_PORT}`;
-export let globalConnection: amqp.Connection;
+let globalConnection: amqp.Connection | null = null;
 
+
+export function getGlobalConnection(): amqp.Connection {
+    if (!globalConnection) {
+        throw new Error('RabbitMQ global connection is not initialized.');
+    }
+    return globalConnection;
+}
+
+// Conecta ao RabbitMQ e retorna a conexão
 export async function connectToRabbitMQ(): Promise<amqp.Connection> {
+    if (globalConnection) {
+        console.log('Reusing existing RabbitMQ connection');
+        return globalConnection;
+    }
+
     try {
         const connection = await amqp.connect(rabbitMQUrl);
-        console.log('Connected to RabbitMQ');
-        console.log('rabbitMQUrl:', rabbitMQUrl);
+        console.log(`Connected to RabbitMQ at ${rabbitMQUrl}`);
         globalConnection = connection;
+
+        // Adiciona listener para detectar fechamentos inesperados da conexão
+        globalConnection.on('error', (err: Error) => {
+            console.error('RabbitMQ connection error:', err);
+            globalConnection = null; // Reseta a conexão global
+        });
+
+        globalConnection.on('close', () => {
+            console.warn('RabbitMQ connection closed.');
+            globalConnection = null;
+        });
+
         return connection;
-    } catch (error) {
-        throw new Error('Could not connect to RabbitMQ using URL: ' + rabbitMQUrl);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('Failed to connect to RabbitMQ:', error);
+            throw new Error(`Could not connect to RabbitMQ using URL: ${rabbitMQUrl}. Error: ${error.message}`);
+        } else {
+            throw new Error('An unknown error occurred while connecting to RabbitMQ');
+        }
     }
 }
 
+// Cria um canal a partir da conexão fornecida
 export async function createChannel(connection: amqp.Connection): Promise<amqp.Channel> {
-    const channel = await connection.createChannel();
-    console.log('Channel created');
-    return channel;
-}
-
-export function startConsuming(connection: amqp.Connection, consumers: Consumer[]): void {
-    consumers.forEach(async (consumer) => {
-        const channel = await createChannel(connection);
-        await channel.assertQueue(consumer.queue);
-        await channel.assertExchange(consumer.exchange, 'fanout', { durable: true });
-        await channel.bindQueue(consumer.queue, consumer.exchange, '');
-
-        function callback(msg: amqp.ConsumeMessage | null): void {
-            consumer.consumeFunction(msg, channel);
-            console.log('Message consumed from queue:', consumer.queue);
-            console.log('Message:', msg?.content.toString());
+    try {
+        const channel = await connection.createChannel();
+        console.log('Channel created successfully');
+        return channel;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error('Failed to create RabbitMQ channel:', error);
+            throw new Error(`Could not create RabbitMQ channel. Error: ${error.message}`);
+        } else {
+            throw new Error('An unknown error occurred while creating RabbitMQ channel');
         }
-
-        await channel.consume(consumer.queue, callback);
-        console.log(`Started consuming from ${consumer.queue}`);
-    });
-
-    console.log('All consuming started');
+    }
 }

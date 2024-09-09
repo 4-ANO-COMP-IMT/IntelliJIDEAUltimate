@@ -71,6 +71,68 @@ services:
       timeout: 10s
       retries: 5
 
+
+image_service:
+    build: ./mss/ImageService
+    volumes:
+      - ./mss/ImageService/upload/:/app/upload/
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres_image
+      - rabbitmq
+      - redis
+    environment:
+      - DATABASE_HOST=postgres_image
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecretpassword
+      - DATABASE_NAME=imagedb
+    networks:
+      - backend
+
+postgres_image:
+    image: postgres:latest
+    environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: mysecretpassword
+        POSTGRES_DB: imagedb
+    ports:
+      - "5435:5432"  # Porta diferente para cada instância de Postgres
+    volumes:
+      - pgdata_image:/var/lib/postgresql/data
+      
+      
+allocation_service:
+    build: ./mss/AllocationService
+    ports:
+      - "3003:3003"
+    depends_on:
+      - postgres_allocation
+      - rabbitmq
+      - redis
+    environment:
+      - DATABASE_HOST=postgres_auth
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecretpassword
+      - DATABASE_NAME=authdb
+    networks:
+      - backend
+
+  postgres_allocation:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: authdb
+    ports:
+      - "5436:5432"  # Porta diferente para cada instância de Postgres
+    volumes:
+      - pgdata_allocation:/var/lib/postgresql/data
+      
+      
+      
   classification_service:
     build: ./mss/ClassificationService
     ports:
@@ -88,18 +150,14 @@ services:
       - DATABASE_NAME=classificationdb
     networks:
       - backend
-
-
+      
+      
   postgres_classification:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: classificationdb
-    ports:
-      - "5435:5432"
-    volumes:
-      - pgdata_classification:/var/lib/postgresql/data
+    POSTGRES_DB: classificationdb
+      ports:
+        - "5435:5432"
+      volumes:
+        - pgdata_classification:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
@@ -107,6 +165,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -134,6 +193,8 @@ services:
 volumes:
   pgdata_auth:
   pgdata_register:
+  pgdata_image:
+  pgdata_allocation:
   pgdata_classification:
 
 networks:
