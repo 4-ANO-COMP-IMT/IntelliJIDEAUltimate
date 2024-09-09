@@ -1,6 +1,6 @@
 {
     "name": "@intelij-ultimate/user-utility",
-    "version": "1.1.0",
+    "version": "1.1.2",
     "description": "A user utility library for Node.js with TypeScript",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
