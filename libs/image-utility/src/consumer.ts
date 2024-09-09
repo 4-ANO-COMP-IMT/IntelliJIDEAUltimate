@@ -8,7 +8,7 @@ export const query = `INSERT INTO images (id, filename, filetype, image_token) V
 export class ImageConsumer extends ConsumerSingleton<Image> {
     protected async processMessage(data: Image): Promise<boolean> {
         try{
-            const result = await pool.query(query, [data.id, data.filename, data.filetype, data.image_token]);
+            const result = await pool.query(query, [data.image_id, data.filename, data.filetype, data.image_token]);
             return true;
         }catch(error){
             return false;
@@ -19,6 +19,7 @@ export class ImageConsumer extends ConsumerSingleton<Image> {
         super(serviceName, on_image_received_topic);
     }
 }
+
 
 
 
