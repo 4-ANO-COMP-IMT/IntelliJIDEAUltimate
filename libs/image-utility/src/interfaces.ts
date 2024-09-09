@@ -1,5 +1,5 @@
 export type Image = {
-  id:number;
+  image_id:number;
   filename:string;
   filetype:string;
   image_token:string;
