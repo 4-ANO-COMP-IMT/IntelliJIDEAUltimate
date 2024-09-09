@@ -1,14 +1,13 @@
-version: '3.8'
-
 services:
   auth_service:
     build: ./mss/AuthService
     ports:
       - "3000:3000"
     depends_on:
-      - postgres_auth
-      - rabbitmq
-      - redis
+      postgres_auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_auth
       - DATABASE_PORT=5432
@@ -25,7 +24,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: authdb
     ports:
-      - "5433:5432"  # Porta diferente para cada instância de Postgres
+      - "5433:5432"
     volumes:
       - pgdata_auth:/var/lib/postgresql/data
     networks:
@@ -41,9 +40,10 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - postgres_register
-      - rabbitmq
-      - redis
+      postgres_register:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_register
       - DATABASE_PORT=5432
@@ -60,7 +60,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: registerdb
     ports:
-      - "5434:5432"  # Porta diferente para cada instância de Postgres
+      - "5434:5432"
     volumes:
       - pgdata_register:/var/lib/postgresql/data
     networks:
@@ -72,7 +72,7 @@ services:
       retries: 5
 
 
-  image_service:
+image_service:
     build: ./mss/ImageService
     volumes:
       - ./mss/ImageService/upload/:/app/upload/
@@ -91,25 +91,19 @@ services:
     networks:
       - backend
 
-  postgres_image:
+postgres_image:
     image: postgres:latest
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: mysecretpassword
-      POSTGRES_DB: imagedb
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: mysecretpassword
+        POSTGRES_DB: imagedb
     ports:
       - "5435:5432"  # Porta diferente para cada instância de Postgres
     volumes:
       - pgdata_image:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  allocation_service:
+      
+      
+allocation_service:
     build: ./mss/AllocationService
     ports:
       - "3003:3003"
@@ -136,6 +130,42 @@ services:
       - "5436:5432"  # Porta diferente para cada instância de Postgres
     volumes:
       - pgdata_allocation:/var/lib/postgresql/data
+      
+      
+      
+  classification_service:
+    build: ./mss/ClassificationService
+    ports:
+      - "3002:3002"
+    depends_on:
+      postgres_classification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=postgres_classification
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecretpassword
+      - DATABASE_NAME=classificationdb
+    networks:
+      - backend
+      
+      
+  postgres_classification:
+    POSTGRES_DB: classificationdb
+      ports:
+        - "5435:5432"
+      volumes:
+        - pgdata_classification:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -147,6 +177,11 @@ services:
       RABBITMQ_DEFAULT_PASS: rabbitmq
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:latest
@@ -160,6 +195,7 @@ volumes:
   pgdata_register:
   pgdata_image:
   pgdata_allocation:
+  pgdata_classification:
 
 networks:
   backend:
