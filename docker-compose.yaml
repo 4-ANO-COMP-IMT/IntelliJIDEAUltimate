@@ -72,7 +72,7 @@ services:
       retries: 5
 
 
-image_service:
+  image_service:
     build: ./mss/ImageService
     volumes:
       - ./mss/ImageService/upload/:/app/upload/
@@ -91,19 +91,26 @@ image_service:
     networks:
       - backend
 
-postgres_image:
+  postgres_image:
     image: postgres:latest
     environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: mysecretpassword
-        POSTGRES_DB: imagedb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: imagedb
     ports:
       - "5435:5432"  # Porta diferente para cada instância de Postgres
     volumes:
       - pgdata_image:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
       
       
-allocation_service:
+  allocation_service:
     build: ./mss/AllocationService
     ports:
       - "3003:3003"
@@ -132,7 +139,6 @@ allocation_service:
       - pgdata_allocation:/var/lib/postgresql/data
       
       
-      
   classification_service:
     build: ./mss/ClassificationService
     ports:
@@ -150,14 +156,18 @@ allocation_service:
       - DATABASE_NAME=classificationdb
     networks:
       - backend
-      
-      
+
+
   postgres_classification:
-    POSTGRES_DB: classificationdb
-      ports:
-        - "5435:5432"
-      volumes:
-        - pgdata_classification:/var/lib/postgresql/data
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: classificationdb
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata_classification:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
