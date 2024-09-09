@@ -1,7 +1,7 @@
 import { pool } from '@intelij-ultimate/postgres-utility';
 import type { PoolClient } from '@intelij-ultimate/postgres-utility';
 import { RectangleDB, RectangleReq } from '../interfaces';
-import { insertRectangleInDB } from '../queries'
+import { insertRectangleInDB, selectRectanglesByImageId } from '../queries'
 
 export async function insertClassification(rectangles: RectangleReq[], user_id: number): Promise<RectangleDB[]> {
     
@@ -23,4 +23,8 @@ export async function insertClassification(rectangles: RectangleReq[], user_id: 
     } finally {
         client.release(); // Libera o cliente de volta ao pool
     }
+}
+
+export async function getRectanglesByImageId(image_id: number): Promise<RectangleDB[]> {
+    return selectRectanglesByImageId(image_id);
 }

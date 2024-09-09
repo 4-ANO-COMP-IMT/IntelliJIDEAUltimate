@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { RectangleReq, RectangleDB } from '../interfaces';
-import { insertClassification } from '../services/classificationService'
+import { insertClassification, getRectanglesByImageId } from '../services/classificationService'
 import { getUserIdFromToken } from '@intelij-ultimate/session-utility'
 
 export const createClassification = async function (req: Request, res: Response) {
@@ -23,9 +23,13 @@ export const createClassification = async function (req: Request, res: Response)
     
 }
 
-export const getClassificationById = function (req: Request, res: Response) {
-    // Lógica para lidar com requisições GET para /classification/:id
-    // Buscar uma classificação específica por ID
-    const { id } = req.params;
+export const getClassificationsById = async function (req: Request, res: Response) {
+    const id = Number.parseInt(req.params.id);
+    const classifications: RectangleDB[] = await getRectanglesByImageId(id);
 
+    if(!classifications) {
+        return res.status(200).json({ message: 'There are no classifications for this image' });
+    }
+    return res.status(200).json({ message: 'Got classifications', classifications: classifications});
+    
 }
