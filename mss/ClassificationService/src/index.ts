@@ -2,8 +2,8 @@ import express from 'express';
 import routes from './routes';
 import { PORT } from './config/env';
 import cors from 'cors';
-import {Consumer,connectToRabbitMQ,startConsuming, } from '@intelij-ultimate/rabbitmq-utility';
-import { LoginConsumer } from '@intelij-ultimate/session-utility';
+import { ClassificationServiceImageConsumer } from './consumers/classificationServiceImage';
+import { ConsumerSingleton , connectToRabbitMQ} from '@intelij-ultimate/rabbitmq-utility';
 
 
 const app = express();
@@ -19,13 +19,12 @@ async function startServer() {
     await new Promise(resolve => setTimeout(resolve, 3000));
     console.log('stop waiting');
 
+    await connectToRabbitMQ();
+   
+    await ClassificationServiceImageConsumer.createInstance("classification-service");
 
-    let connection = await connectToRabbitMQ();
+    await ConsumerSingleton.startAllConsumers()
 
-    let consumers: Consumer[] = [
-        LoginConsumer.getInstance()
-    ];
-    startConsuming(connection, consumers);
 
 
     await app.listen(PORT);

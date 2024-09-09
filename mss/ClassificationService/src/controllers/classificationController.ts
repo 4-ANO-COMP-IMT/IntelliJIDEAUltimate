@@ -4,16 +4,14 @@ import { insertClassification, getRectanglesByImageId } from '../services/classi
 import { getUserIdFromToken } from '@intelij-ultimate/session-utility'
 
 export const createClassification = async function (req: Request, res: Response) {
-    const session_token = req.headers['authorization']?.split(' ').pop();
-    if (!session_token) return res.status(401).json({ message: 'No token provided' });
-
-    let user_id = await getUserIdFromToken(session_token);
-    if(!user_id) return res.status(401).json({ message: 'Invalid token' });
+    let user_id = req.body.user_id;
+    if(!user_id) return res.status(401).json({ message: 'middleware falhou' });
 
     let rectangles: RectangleReq[] = req.body.rectangles;
+    let image_id: number = req.body.image_id;
 
     try {
-        let insertedRectangles: RectangleDB[] = await insertClassification(rectangles, user_id).catch();
+        let insertedRectangles: RectangleDB[] = await insertClassification(rectangles, image_id).catch();
         console.log("classificationController: classificação inserida");
         res.status(200).json({message: "Classificação inserida", classificacao: insertedRectangles});
     }
