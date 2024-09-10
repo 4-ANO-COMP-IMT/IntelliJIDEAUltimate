@@ -1,9 +1,10 @@
 // src/components/WelcomePage.tsx
 
 import React, { useEffect, useState } from 'react';
-import { Container, Button, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import RoleButton from '../welcome/RoleButton';  // Importa o RoleButton
 
 const WelcomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,39 +22,39 @@ const WelcomePage: React.FC = () => {
     }
   }, [navigate]);
 
-  const handleClassify = () => {
-    navigate('/classification'); // Redireciona para a página de classificação
-  };
-
-  const handleRegisterUser = () => {
-    navigate('/admin-register'); // Redireciona para a página de registrar usuários (somente admins)
-  };
-
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center vh-100">
-      <h1 className="mb-4">Bem-vindo(a) ao Sistema de Classificação de Imagens</h1>
-      <p className="lead mb-5">Escolha o que deseja fazer a seguir:</p>
+      <h1 className="mb-4">Welcome</h1>
 
-      {role === 'admin' ? (
-        <Row className="w-50">
-          <Col className="mb-3">
-            <Button variant="primary" size="lg" onClick={handleClassify} className="w-100">
-              Classificar Imagens
-            </Button>
-          </Col>
-          <Col>
-            <Button variant="secondary" size="lg" onClick={handleRegisterUser} className="w-100">
-              Registrar Novo Usuário
-            </Button>
-          </Col>
-        </Row>
-      ) : role === 'user' ? (
-        <Button variant="primary" size="lg" onClick={handleClassify}>
-          Classificar Imagens
-        </Button>
-      ) : (
-        <p>Carregando permissões...</p> // Exibe enquanto a role está sendo verificada
-      )}
+      {/* Primeira linha: Classificar e Registrar */}
+      <Row className="text-center w-50 mb-3">
+        <Col>
+          <RoleButton role={role} allowedRoles={['admin', 'user']} onClick={() => navigate('/classification')}>
+            Classificar
+          </RoleButton>
+        </Col>
+
+        <Col>
+          <RoleButton role={role} allowedRoles={['admin']} onClick={() => navigate('/admin-register')}>
+            Registrar
+          </RoleButton>
+        </Col>
+      </Row>
+
+      {/* Segunda linha: Validar e Upload */}
+      <Row className="text-center w-50">
+        <Col>
+          <RoleButton role={role} allowedRoles={['admin']} onClick={() => navigate('/validation')}>
+            Validar
+          </RoleButton>
+        </Col>
+
+        <Col>
+          <RoleButton role={role} allowedRoles={['admin']} onClick={() => navigate('/image-upload')}>
+            Upload
+          </RoleButton>
+        </Col>
+      </Row>
     </Container>
   );
 };

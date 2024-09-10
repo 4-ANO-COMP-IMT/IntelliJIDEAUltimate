@@ -1,16 +1,18 @@
-import NavbarComponent from 'components/Header/Navbar';
-import React, { PropsWithChildren } from 'react'
+// src/layouts/PageLayout.tsx
 
-const PageLayout: React.FC = ({children}:PropsWithChildren) => {
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Header from '../Header/Header';  // Importa o seu componente Header
 
-  
-    return (
-        <>
-            <NavbarComponent handleShow={()=>{}}></NavbarComponent>
-            {children}
-        </>
-    );
-  };
-  
-  export default PageLayout;
-  
+const PageLayout: React.FC = () => {
+  return (
+    <div>
+      <Header /> {/* O header será exibido em todas as páginas */}
+      <div className="content">
+        <Outlet /> {/* O conteúdo da rota específica será exibido aqui */}
+      </div>
+    </div>
+  );
+};
+
+export default PageLayout;

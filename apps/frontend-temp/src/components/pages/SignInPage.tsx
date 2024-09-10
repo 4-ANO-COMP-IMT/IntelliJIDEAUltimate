@@ -1,11 +1,11 @@
 // src/components/SignInPage.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstrap';
 import { useMutation } from 'react-query';
 import axios, { AxiosError } from 'axios';
 import Cookies from 'js-cookie';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignInAlt } from 'react-icons/fa';
 
 interface LoginFormValues {
@@ -38,11 +38,22 @@ const loginUser = async (credentials: LoginFormValues): Promise<LoginResponse> =
   }
 };
 
-const SignInPage: React.FC = () => {
+const SignIn: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showTempButtons, setShowTempButtons] = useState(true); // Controle para exibir ou ocultar os botões temporários
+  const [notification, setNotification] = useState<string | null>(null); // Notificação de redirecionamento
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Checa se há uma razão para redirecionamento no query string
+    const queryParams = new URLSearchParams(location.search);
+    const reason = queryParams.get('reason');
+    if (reason) {
+      setNotification(reason); // Define a notificação de redirecionamento
+    }
+  }, [location.search]);
 
   const mutation = useMutation(loginUser, {
     onSuccess: (data) => {
@@ -70,23 +81,17 @@ const SignInPage: React.FC = () => {
     mutation.mutate({ username, password });
   };
 
-  // Funções para login rápido como admin ou user
-  const handleQuickAdminLogin = () => {
-    setUsername('admin');
-    setPassword('admin123');
-    mutation.mutate({ username: 'admin', password: 'admin123' });
-  };
-
-  const handleQuickUserLogin = () => {
-    setUsername('user');
-    setPassword('user123');
-    mutation.mutate({ username: 'user', password: 'user123' });
-  };
-
   return (
     <Container className="d-flex justify-content-center align-items-center vh-100">
       <Form onSubmit={handleSubmit} className="w-50">
         <h3 className="text-center mb-4">Login</h3>
+
+        {/* Exibe a notificação de redirecionamento, se houver */}
+        {notification && (
+          <Alert variant="warning" className="text-center">
+            {notification}
+          </Alert>
+        )}
 
         {/* Botões temporários de login rápido */}
         {showTempButtons && (
@@ -96,7 +101,7 @@ const SignInPage: React.FC = () => {
                 <Button
                   variant="danger"
                   className="w-100 mb-2"
-                  onClick={handleQuickAdminLogin}
+                  onClick={() => mutation.mutate({ username: 'admin', password: 'admin123' })}
                   style={{ fontWeight: 'bold' }}
                 >
                   Login como Administrador (Admin)
@@ -106,7 +111,7 @@ const SignInPage: React.FC = () => {
                 <Button
                   variant="success"
                   className="w-100 mb-2"
-                  onClick={handleQuickUserLogin}
+                  onClick={() => mutation.mutate({ username: 'user', password: 'user123' })}
                   style={{ fontWeight: 'bold' }}
                 >
                   Login como Usuário Normal
@@ -151,5 +156,9 @@ const SignInPage: React.FC = () => {
     </Container>
   );
 };
+
+const SignInPage: React.FC = () => {
+  return <SignIn />;
+}
 
 export default SignInPage;
