@@ -1,7 +1,7 @@
 import React from 'react';
 import Body from '../Body/Body';
 
-const Classificate: React.FC = () => {
+const ClassificationPage: React.FC = () => {
     return (
         <>
             <Body />
@@ -9,4 +9,4 @@ const Classificate: React.FC = () => {
     );
 };
 
-export default Classificate;
+export default ClassificationPage;
