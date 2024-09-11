@@ -9,10 +9,10 @@ const Header: React.FC = () => {
 	const handleShow = () => setShow(true);
 
 	return (
-		<>
+		<header>
 			<NavbarComponent handleShow={handleShow} />
 			<Sidebar show={show} handleClose={handleClose} />
-		</>
+		</header>
 	);
 };
 

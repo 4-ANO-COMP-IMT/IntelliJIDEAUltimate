@@ -1,6 +1,6 @@
 import React from "react";
-import { ToolProvider } from "context/ToolContext";
-import { DrawingProvider } from "context/DrawingContext";
+import { ToolProvider } from "contexts/ToolContext";
+import { DrawingProvider } from "contexts/DrawingContext";
 // import { InteractionStateProvider } from 'context/InteractionStateContext';
 import Toolbar from "./Toolbar";
 import { Col, Container, Row } from "react-bootstrap";

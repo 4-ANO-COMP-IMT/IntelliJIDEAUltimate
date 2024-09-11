@@ -1,13 +1,26 @@
+// src/components/NavbarComponent.tsx
+
 import React from "react";
 import { Navbar, Nav, Button, Badge } from "react-bootstrap";
-import { FaBars, FaExclamationCircle, FaBell } from "react-icons/fa";
+import { FaBars, FaExclamationCircle, FaBell, FaSignOutAlt } from "react-icons/fa"; // Importa o ícone de logout
 import { logoStyle, navTextStyle, buttonStyle, badgeStyle } from "./styles";
+import { useAuth } from '../../contexts/AuthContext'; // Usa o hook de autenticação
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
 	handleShow: () => void;
 }
 
 const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
+	const { logout } = useAuth(); // Usa o hook useAuth para obter a função logout
+	const navigate = useNavigate();
+
+	// Função de logout
+	const handleLogout = () => {
+		logout(); // Executa o logout do contexto de autenticação
+		navigate('/sign-in'); // Redireciona para a página de login
+	};
+
 	return (
 		<Navbar bg="dark" variant="dark" className="px-3">
 			<Nav>
@@ -53,6 +66,11 @@ const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
 					>
 						10
 					</Badge>
+				</Button>
+
+				{/* Botão de Logout */}
+				<Button variant="danger" className="ml-3" onClick={handleLogout}>
+					<FaSignOutAlt style={{ color: "white", fontSize: "1.2em" }} />
 				</Button>
 			</Nav>
 		</Navbar>

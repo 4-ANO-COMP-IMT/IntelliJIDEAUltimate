@@ -1,23 +1,27 @@
 // src/components/ProtectedRoute.tsx
 
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { useAuth } from '../../contexts/AuthContext'; // Usa o contexto de autenticação
+import { useAllowedRoles } from 'contexts/AllowedRolesContext';
 
-interface ProtectedRouteProps {
-  reason: string; // A razão pela qual o usuário foi redirecionado
-}
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ reason }) => {
-  const sessionToken = Cookies.get('session_token');
+const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
+  const {allowedRoles} = useAllowedRoles();
+  const { user, isAuthenticated } = useAuth(); // Obtém o usuário e o estado de autenticação do contexto
+ 
+  if ( !isAuthenticated ){
+    console.log('Not authenticated, redirecting to sign-in, user:', user);
 
-  // Se o usuário não tiver um token, redireciona para a página de login
-  if (!sessionToken) {
-    return <Navigate to={`/sign-in?reason=${encodeURIComponent(reason)}`} />;
+    return <Navigate to="/sign-in" />; // Redireciona para a página de login
+
+  }
+  if ( user?.role && !allowedRoles.includes(user.role) ) {
+    console.log('User does not have the required role, redirecting to forbidden, user:', user);
+    return <Navigate to="/forbidden" />; // Redireciona para a página de "Acesso Negado"
   }
 
-  // Se o usuário tiver o token, renderiza o componente da rota
-  return <Outlet />;
+  return <>{children}</>
 };
 
 export default ProtectedRoute;

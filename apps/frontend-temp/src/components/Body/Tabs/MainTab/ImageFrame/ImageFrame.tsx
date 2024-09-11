@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useContext, useState } from "react";
 import { Stage, Layer, Rect } from "react-konva";
 import Geometry from "./Geometry/Geometry";
-import { DrawingContext, GeometryItem } from "context/DrawingContext";
-import { ToolContext } from "context/ToolContext";
+import { DrawingContext, GeometryItem } from "contexts/DrawingContext";
+import { ToolContext } from "contexts/ToolContext";
 import GeometryPreview from "./Geometry/GeometryPreview";
 
 interface ImageFrameProps {

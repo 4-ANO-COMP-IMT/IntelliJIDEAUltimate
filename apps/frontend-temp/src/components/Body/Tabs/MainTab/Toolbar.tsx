@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { ToolContext } from "context/ToolContext";
-import { DrawingContext } from "context/DrawingContext";
+import { ToolContext } from "contexts/ToolContext";
+import { DrawingContext } from "contexts/DrawingContext";
 import {
 	ButtonToolbar,
 	ToggleButton,

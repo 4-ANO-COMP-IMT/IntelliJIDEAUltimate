@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstrap';
 import { useMutation } from 'react-query';
-import axios, { AxiosError } from 'axios';
-import Cookies from 'js-cookie';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignInAlt } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext'; // Importa o hook useAuth
 
 interface LoginFormValues {
   username: string;
@@ -14,9 +13,11 @@ interface LoginFormValues {
 }
 
 interface LoginResponse {
+  username: string;
   message: string;
   session_token?: string;
-  role?: 'admin' | 'user'; // Hardcoded role for demonstration
+  user_id?: string;
+  role?: 'admin' | 'user';
 }
 
 const loginUser = async (credentials: LoginFormValues): Promise<LoginResponse> => {
@@ -25,16 +26,20 @@ const loginUser = async (credentials: LoginFormValues): Promise<LoginResponse> =
     return {
       message: 'Login successful',
       session_token: 'admin_token_123',
+      user_id: '1',
       role: 'admin',
+      username: 'admin',
     };
   } else if (credentials.username === 'user' && credentials.password === 'user123') {
     return {
       message: 'Login successful',
       session_token: 'user_token_123',
+      user_id: '2',
       role: 'user',
+      username: 'user',
     };
   } else {
-    throw new AxiosError('Credenciais inválidas');
+    throw new Error('Credenciais inválidas');
   }
 };
 
@@ -45,6 +50,7 @@ const SignIn: React.FC = () => {
   const [notification, setNotification] = useState<string | null>(null); // Notificação de redirecionamento
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth(); // Usa o hook useAuth para obter a função login
 
   useEffect(() => {
     // Checa se há uma razão para redirecionamento no query string
@@ -57,22 +63,21 @@ const SignIn: React.FC = () => {
 
   const mutation = useMutation(loginUser, {
     onSuccess: (data) => {
-      if (data.session_token) {
-        // Armazena o token e o papel (role) no cookie
-        Cookies.set('session_token', data.session_token, { expires: 1 });
-        Cookies.set('user_role', data.role || 'user', { expires: 1 }); // Armazena o papel no cookie
+      if (data.session_token && data.user_id && data.role) {
+        // Chama o login do contexto de autenticação
+        login({
+          username: data.username,
+          user_id: data.user_id,
+          session_token: data.session_token,
+          role: data.role,
+        });
 
         // Redireciona para a página de boas-vindas
         navigate('/welcome');
       }
     },
-    onError: (error: AxiosError) => {
-      if (error.response && error.response.data) {
-        const serverError = error.response.data as LoginResponse;
-        alert(serverError.message); // Mostra a mensagem de erro específica
-      } else {
-        alert('Ocorreu um erro ao tentar fazer login.');
-      }
+    onError: () => {
+      alert('Credenciais inválidas. Tente novamente.');
     },
   });
 
@@ -159,6 +164,6 @@ const SignIn: React.FC = () => {
 
 const SignInPage: React.FC = () => {
   return <SignIn />;
-}
+};
 
 export default SignInPage;

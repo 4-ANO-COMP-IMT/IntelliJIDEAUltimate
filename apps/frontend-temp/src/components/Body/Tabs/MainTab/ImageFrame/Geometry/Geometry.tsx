@@ -1,6 +1,6 @@
 import React from "react";
 import { Line, Rect } from "react-konva";
-import { GeometryItem } from "context/DrawingContext";
+import { GeometryItem } from "contexts/DrawingContext";
 
 interface GeometryProps {
 	item: GeometryItem;

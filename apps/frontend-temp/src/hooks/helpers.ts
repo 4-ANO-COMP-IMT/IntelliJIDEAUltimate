@@ -1,4 +1,4 @@
-import { Point } from "context/DrawingContext";
+import { Point } from "contexts/DrawingContext";
 
 export const calculateMidPoint = (pointA: Point, pointB: Point): Point => {
 	return {

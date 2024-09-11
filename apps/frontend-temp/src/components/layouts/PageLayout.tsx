@@ -1,18 +1,17 @@
 // src/layouts/PageLayout.tsx
 
-import React from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { PropsWithChildren } from 'react';
 import Header from '../Header/Header';  // Importa o seu componente Header
 
-const PageLayout: React.FC = () => {
+const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <div>
-      <Header /> {/* O header será exibido em todas as páginas */}
-      <div className="content">
-        <Outlet /> {/* O conteúdo da rota específica será exibido aqui */}
-      </div>
+      <Header/>
+      <main>{children}</main> {/* Renderiza o conteúdo das rotas */}
+      <footer>/* Coloque seu Footer aqui, se necessário */</footer>
     </div>
   );
 };
 
 export default PageLayout;
+

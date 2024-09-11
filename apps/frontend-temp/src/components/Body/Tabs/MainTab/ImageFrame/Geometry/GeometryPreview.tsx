@@ -4,7 +4,7 @@ import {
 	DrawingState,
 	PreviewBoundingBox,
 	PreviewPolyline
-} from "context/DrawingContext";
+} from "contexts/DrawingContext";
 
 interface GeometryPreviewProps {
 	previewItem: DrawingState["previewItem"];
