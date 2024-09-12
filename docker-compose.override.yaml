@@ -1,4 +1,40 @@
 services:
+  auth_service:
+    command: ["npm", "run", "start:dev"]
+    develop:
+      watch:
+        - action: sync
+          path: ./mss/AuthService
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./mss/AuthService/package.json
+
+  register_service:
+    command: ["npm", "run", "start:dev"]
+    develop:
+      watch:
+        - action: sync
+          path: ./mss/RegisterUserService
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./mss/RegisterUserService/package.json
+
+  image_service:
+    command: ["npm", "run", "start:dev"]
+    develop:
+      watch:
+        - action: sync
+          path: ./mss/ImageService
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./mss/ImageService/package.json
+
   classification_service:
     command: ["npm", "run", "start:dev"]
     develop:
