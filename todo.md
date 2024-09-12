@@ -33,3 +33,4 @@
  * O getInstance do rabbitmq-ultility.PublisherSingleton, caso não exista instância já criada, cria uma instância, porém sem criar o channel!... por hora, usando o cretateInstance()
     * Esse createInstance pede um parametro topic, que está na classe filha RegistrationPublisher. Porem não é possivel acessar e passar no createInstance
         * o getInstance tambem
+ * O ClassificationService não está replicando a tabela Sessions, embora use authMiddleWare, que acessa ela
