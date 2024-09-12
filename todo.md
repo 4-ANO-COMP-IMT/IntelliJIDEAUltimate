@@ -26,3 +26,10 @@
         * fazer um endpoint no ClassificationService para fornecer todas image_id associados a um usuario
         * avaliar a mudança de image_id para image_token
  
+
+
+ * ImageConsumer.proccessMessage() insere imagem no BD, mas a classe filha ClassificationServiceImageConsumer faz override, inserindo "imageAllocation" no BD,
+    então a função original nunca é usada?
+ * O getInstance do rabbitmq-ultility.PublisherSingleton, caso não exista instância já criada, cria uma instância, porém sem criar o channel!... por hora, usando o cretateInstance()
+    * Esse createInstance pede um parametro topic, que está na classe filha RegistrationPublisher. Porem não é possivel acessar e passar no createInstance
+        * o getInstance tambem
