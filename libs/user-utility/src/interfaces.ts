@@ -17,7 +17,7 @@ export class NewUser{
   private password: string;
   private is_admin: boolean = false;
   
-  constructor(username: string, password: string){
+  constructor(username: string, password: string, is_admin: boolean = false){
     this.username = username;
     this.password = password;
   }

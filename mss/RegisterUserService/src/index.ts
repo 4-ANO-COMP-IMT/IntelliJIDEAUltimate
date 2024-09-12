@@ -14,12 +14,12 @@ app.use(express.json());
 app.use(cors());
 app.use(adminMiddleware);
 app.post('/register', async (req, res) => {
-    const { new_username, new_password } = req.body;
+    const { new_username, new_password, is_admin } = req.body;
     console.log('Registering user...');
-    console.log(`Username: ${new_username}`);
-    console.log(`Password: ${new_password}`);
+    //console.log(`Username: ${new_username}`);
+    //console.log(`Password: ${new_password}`);
 
-    const newUser: NewUser = new NewUser(new_username, new_password);
+    const newUser: NewUser = new NewUser(new_username, new_password, is_admin);
 
     let user = await getUserByUsername(newUser.getUsername());
     if (user) {
