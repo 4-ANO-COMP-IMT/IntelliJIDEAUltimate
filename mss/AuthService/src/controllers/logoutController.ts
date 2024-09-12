@@ -14,7 +14,7 @@ export const logout = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid token' });
     }
     await deleteSession(session);
-    LogoutPublisherSingleton.getInstance().publish(session);
+    LogoutPublisherSingleton.getInstance("on_logout").publish(session);
     
     res.json({ message: 'Logout successful' });
   }catch(error){
