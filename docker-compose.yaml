@@ -79,9 +79,10 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - postgres_image
-      - rabbitmq
-      - redis
+      postgres_image:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DATABASE_HOST=postgres_image
       - DATABASE_PORT=5432
@@ -98,7 +99,7 @@ services:
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: imagedb
     ports:
-      - "5435:5432"  # Porta diferente para cada instância de Postgres
+      - "5436:5432"  # Porta diferente para cada instância de Postgres
     volumes:
       - pgdata_image:/var/lib/postgresql/data
     networks:

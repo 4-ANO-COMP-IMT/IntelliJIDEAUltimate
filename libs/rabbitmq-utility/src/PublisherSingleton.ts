@@ -21,32 +21,22 @@ export abstract class PublisherSingleton<TMessage> {
     }
 
     // Método estático para obter a instância singleton da classe, criando-a se necessário
-    public static getInstance<T extends PublisherSingleton<any>>(this: new (topic: string) => T, topic: string): T {
+    public static async getInstance<T extends PublisherSingleton<any>>(this: new () => T): Promise<T> {
         const className = this.name;
 
         if (!PublisherSingleton.instances.has(className)) {
-            const instance = new this(topic);
+            const instance = new this();
             PublisherSingleton.instances.set(className, instance);
+
+            instance._channel = await createChannel(getGlobalConnection());
+            await instance.setupExchange();
+
+            return instance;
         }
 
         return PublisherSingleton.instances.get(className) as T;
     }
 
-    // Método estático para criar uma nova instância e inicializar o canal AMQP
-    public static async createInstance<T extends PublisherSingleton<any>>(this: new (topic: string) => T, topic: string): Promise<T> {
-        const className = this.name;
-        if (PublisherSingleton.instances.has(className)) {
-            throw new Error(`Instance of ${className} already exists`);
-        }
-
-        const instance = new this(topic);
-        PublisherSingleton.instances.set(className, instance);
-
-        instance._channel = await createChannel(getGlobalConnection());
-        await instance.setupExchange();
-
-        return instance;
-    }
 
     // Método privado para configurar o exchange no RabbitMQ
     private async setupExchange(): Promise<void> {

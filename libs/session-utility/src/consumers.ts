@@ -6,7 +6,7 @@ import { on_login_topic, on_logout_topic } from "./topics";
 export class LoginConsumerSingleton extends ConsumerSingleton<Session> {
     protected async processMessage(data: Session): Promise<boolean> {
         try{
-            const result = await pool.query('INSERT INTO sessions (user_id, session_token, session_expiry) VALUES ($1, $2, $3) RETURNING *', [data.user_id, data.session_token, data.session_expiry]);
+            const result = await pool.query('INSERT INTO sessions (session_id, user_id, session_token, session_expiry) VALUES ($1, $2, $3, $4) RETURNING *', [data.session_id, data.user_id, data.session_token, data.session_expiry]);
             return true;
         }catch(error){
             return false;
