@@ -12,7 +12,7 @@ interface ImageCanvasProps {
 
 
 const getColorByClassId = (class_id: number) => {
-  return classes[class_id].color ?? '#000000'; // Retorna a cor da classe ou preto se não houver
+  return classes[class_id]?.color || '#000000'; // Retorna a cor da classe ou preto se não houver
 };
 
 const ImageCanvas: React.FC<ImageCanvasProps> = ({ imageUrl, rectangles, width, height }) => {
