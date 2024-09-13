@@ -28,7 +28,8 @@ app.post('/register', async (req, res) => {
     user = await createUser(newUser.getUsername(), newUser.getPassword(), newUser.getIsAdmin());
     console.log(`User registered: ${user.username} with id: ${user.user_id}`);
 
-    await RegistrationPublisher.getInstance("on_registration").publish(user);
+    const registrationPublisher = await RegistrationPublisher.getInstance();
+    await registrationPublisher.publish(user);
     
     res.status(200).json({ message: 'User registered' });
 });
@@ -42,7 +43,7 @@ const startServer = async() => {
 
     await connectToRabbitMQ();
 
-    await RegistrationPublisher.createInstance("on_registration"); // Não deveria passar essa string, nem usar o create, mas sim getInstance()
+    await RegistrationPublisher.getInstance();
    
     await LoginConsumerSingleton.createInstance("register-service");
 

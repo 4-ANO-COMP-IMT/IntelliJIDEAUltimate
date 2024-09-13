@@ -25,8 +25,8 @@ async function startServer() {
 
     let connection = await connectToRabbitMQ();
 
-    await LoginPublisherSingleton.createInstance("on_login"); // Não deveria passar essa string, nem usar o create, mas sim getInstance()
-    await LogoutPublisherSingleton.createInstance("on_logout"); // Não deveria passar essa string, nem usar o create, mas sim getInstance()
+    await LoginPublisherSingleton.getInstance();
+    await LogoutPublisherSingleton.getInstance(); 
 
     await RegistrationConsumer.createInstance("auth-service");
 

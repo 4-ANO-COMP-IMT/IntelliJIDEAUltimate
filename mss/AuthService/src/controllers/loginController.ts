@@ -16,7 +16,8 @@ export const login = async (req: Request, res: Response) => {
       return res.status(500).json({ message: 'could not create session' }); 
     }
     console.log('session:', session);
-    await LoginPublisherSingleton.getInstance("on_login").publish(session);
+    const loginPublisher = await LoginPublisherSingleton.getInstance();
+    await loginPublisher.publish(session);
     console.log('LoginPublisherSingleton published');
     
     res.json({ message: 'Login successful' , session_token: session.session_token});
