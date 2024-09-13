@@ -7,10 +7,11 @@ import { setupMulter } from './config/multer';
 import cors from 'cors';
 import path from 'path';
 
-import {Consumer,connectToRabbitMQ,startConsuming, } from '@intelij-ultimate/rabbitmq-utility';
+import { insertImages } from './services/imageService'
 
-import {LoginPublisherSingleton, LogoutPublisherSingleton} from "@intelij-ultimate/session-utility";
-import { RegistrationConsumer } from '@intelij-ultimate/user-utility';
+import { connectToRabbitMQ } from '@intelij-ultimate/rabbitmq-utility';
+
+import { ImagePublisherSingleton, ImageAllocation, Image, ImageDB } from '@intelij-ultimate/image-utility'
 
 // Configuração do express
 const app = express();
@@ -19,8 +20,7 @@ app.use(express.json()); // Para processar o corpo JSON das requisições
 
 // Função para lidar com o upload de arquivos
 function handleFileUpload(req: Request, res: Response): void {
-  const { username } = req.body; // Obtém o nome do usuário do corpo da requisição
-  console.log(req);
+  //console.log(req);
   if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
     res.status(400).json({ message: 'Nenhum arquivo foi enviado.' });
     return;
@@ -31,9 +31,31 @@ function handleFileUpload(req: Request, res: Response): void {
 
   // Aqui, você deve salvar os detalhes do arquivo e do usuário no banco de dados
   // Exemplo:
-  files.forEach(file => {
-    //username, file.filename, new Date()
-    console.log(`Arquivo ${file.filename} enviado por ${username}`);
+  files.forEach(async file => {
+    
+    const fileFullName = file.filename;
+
+    const [filename, filetype] = fileFullName.split('.'); //= path.extname(file.originalname);
+
+    const image:Image = {
+      filename: filename,
+      filetype: filetype
+    }
+
+    const imageDB = await insertImages(image);
+    if(!imageDB) {
+      res.status(500).json({ message: `Problema ao inserir imagem ${fileFullName} no BD` });
+      return;
+    }
+
+    const id = imageDB.image_id;
+    const imageAllocation: ImageAllocation = {
+      image_id: id,
+      image_url: `http://localhost:${PORT}/view/${fileFullName}`
+    };
+    const imagePublisher = await ImagePublisherSingleton.getInstance(); 
+    await imagePublisher.publish(imageAllocation);
+
   });
 
   res.status(200).json({ message: 'Uploads realizados com sucesso!' });
@@ -43,7 +65,7 @@ function handleFileUpload(req: Request, res: Response): void {
 const upload = setupMulter();
 
 // Rota para upload de múltiplos arquivos
-app.post('/upload', upload.array('images', 10), handleFileUpload);
+app.post('/upload', upload.array('images', 100), handleFileUpload);
 
 
 // Endpoint para download de arquivos
@@ -78,22 +100,15 @@ app.get('/view/:filename', (req, res) => {
 
 
 async function startServer() {
-    console.log('Starting up... wait 10 seconds');
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    console.log('Starting up... wait 3 seconds');
+    await new Promise(resolve => setTimeout(resolve, 3000));
     console.log('stop waiting');
 
-    let connection = await connectToRabbitMQ();
-    // await LoginPublisherSingleton.getInstance().start();
-    // await LogoutPublisherSingleton.getInstance().start();
+    await connectToRabbitMQ();
 
-    let consumers: Consumer[] = [
-        // RegistrationConsumer.getInstance()
-    ];
-    startConsuming(connection, consumers);
+    await ImagePublisherSingleton.getInstance();
 
-
-    await app.listen(PORT);
-    console.log(`Server running on port ${PORT}`);
+    app.listen(PORT, () => console.log(`Image service running on port ${PORT}`));
 }
 
 startServer();

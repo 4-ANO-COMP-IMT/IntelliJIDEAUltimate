@@ -11,7 +11,8 @@ export function setupMulter(): multer.Multer {
       cb(null, path.join(__dirname,'..', '..', 'upload'));
     },
     filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void): void => {
-      const uniqueName = `${uuidv4()}`; // Define o nome do arquivo com UUID
+      const extension = path.extname(file.originalname);
+      const uniqueName = uuidv4() + extension; // Define o nome do arquivo com UUID
       cb(null, uniqueName);
     }
   });
