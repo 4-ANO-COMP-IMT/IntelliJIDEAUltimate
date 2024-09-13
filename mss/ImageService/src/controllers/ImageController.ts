@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+/* import { Request, Response } from 'express';
 import { validateLogin } from '../services/validationService';
 import { createSession } from '@intelij-ultimate/session-utility';
 import { LoginPublisherSingleton } from '@intelij-ultimate/session-utility';
@@ -55,3 +55,4 @@ export const getImageById = async (req: Request, res: Response) => {
   };
 
 
+ */
