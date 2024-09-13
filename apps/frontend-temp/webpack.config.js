@@ -51,7 +51,7 @@ module.exports = {
       directory: path.join(__dirname, "public"), // Pasta dos arquivos estáticos
     },
     compress: true, // Habilita compressão para melhorar a performance
-    port: 3002, // Porta do servidor de desenvolvimento
+    port: 3010, // Porta do servidor de desenvolvimento
     historyApiFallback: true, // Importante para suportar React Router
   },
 };
