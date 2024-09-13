@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@intelij-ultimate/middleware-utility": "^1.0.9",
-    "@intelij-ultimate/rabbitmq-utility": "^1.1.3",
+    "@intelij-ultimate/rabbitmq-utility": "^1.1.4",
     "@intelij-ultimate/session-utility": "^1.1.3",
     "@intelij-ultimate/user-utility": "^1.1.3",
     "amqplib": "^0.10.4",
