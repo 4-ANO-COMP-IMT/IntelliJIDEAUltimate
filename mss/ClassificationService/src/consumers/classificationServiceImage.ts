@@ -1,6 +1,6 @@
 import { ConsumerSingleton } from "@intelij-ultimate/rabbitmq-utility";
 import { insertImageInDB } from "../queries/allocationImageQueries";
-import { ImageConsumer, Image } from "@intelij-ultimate/image-utility";
+import { ImageAllocation, on_image_received_topic } from "@intelij-ultimate/image-utility";
 import { pool } from "@intelij-ultimate/postgres-utility";
 import { AllocationImageDB } from "../interfaces";
 
@@ -23,10 +23,10 @@ export async function insertNewImage(image_id: number, image_url: string): Promi
 
 
 
-export class ClassificationServiceImageConsumer extends ImageConsumer {
-    protected async processMessage(data: Image): Promise<boolean> {
+export class ClassificationServiceImageConsumer extends ConsumerSingleton<ImageAllocation> {
+    protected async processMessage(data: ImageAllocation): Promise<boolean> {
         try{
-            await insertNewImage(data.image_id,`http://localhost:3003/view/${data.image_token}`)
+            await insertNewImage(data.image_id, data.image_url)
             return true;
         }catch(error){
             return false;
@@ -34,7 +34,7 @@ export class ClassificationServiceImageConsumer extends ImageConsumer {
 
     }
     constructor(serviceName: string) {
-        super(serviceName);
+        super(serviceName, on_image_received_topic);
     }
 }
 
