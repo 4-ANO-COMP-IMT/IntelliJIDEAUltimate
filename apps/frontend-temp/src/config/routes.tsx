@@ -2,13 +2,13 @@
 
 import WelcomePage from "components/pages/WelcomePage";
 import AdminRegisterPage from "components/pages/AdminRegisterPage";
-import ClassificationPage from "components/pages/ClassificationPage";
 import ValidationPage from "components/pages/ValidationPage";
 import ImageUploadPage from "components/pages/ImageUploadPage";
 import SignInPage from "components/pages/SignInPage";
 import HomePage from "components/pages/HomePage";
 import React, { ReactNode } from "react";
 import NewValidationPage from "components/validation/new/pages/NewValidationPage";
+import ClassificationPage from "components/Classification/ClassificationPage";
 
 interface RouteConfig {
   path: string;

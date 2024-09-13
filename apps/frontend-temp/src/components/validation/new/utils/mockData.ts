@@ -11,7 +11,7 @@ export const generateMockData = (count: number): CardInfo[] => {
       y: getRandomNumber(0, 1),
       width: getRandomNumber(0, 1),
       height: getRandomNumber(0, 1),
-      class_id: Math.floor(getRandomNumber(0, 10)),
+      class_id: Math.floor(getRandomNumber(1, 2)),
     })),
     timestamp: new Date(),
   }));
@@ -50,14 +50,14 @@ export const generateMockData2 = (): CardInfo[] => {
                 y: 0.1,
                 width: 0.2,
                 height: 0.2,
-                class_id: 1
+                class_id: 0
             },
             {
                 x: 0.3,
                 y: 0.3,
                 width: 0.2,
                 height: 0.2,
-                class_id: 2
+                class_id: 1
             }
         ],
         timestamp: new Date()

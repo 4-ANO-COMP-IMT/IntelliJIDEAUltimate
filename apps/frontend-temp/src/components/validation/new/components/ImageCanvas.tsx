@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react'; 
 import { Stage, Layer, Rect, Image as KonvaImage } from 'react-konva';
 import useImage from 'use-image';
+import { classes } from 'config/classes'
 
 interface ImageCanvasProps {
   imageUrl: string;
@@ -9,14 +10,9 @@ interface ImageCanvasProps {
   height: number;
 }
 
-// Paleta de cores para os diferentes class_ids
-const colorPalette = [
-  '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#FFC300',
-  '#581845', '#DAF7A6', '#900C3F', '#C70039', '#2ECC71'
-];
 
 const getColorByClassId = (class_id: number) => {
-  return colorPalette[class_id % colorPalette.length];
+  return classes[class_id].color ?? '#000000'; // Retorna a cor da classe ou preto se não houver
 };
 
 const ImageCanvas: React.FC<ImageCanvasProps> = ({ imageUrl, rectangles, width, height }) => {

@@ -1,12 +1,12 @@
-import React from 'react';
-import Body from '../Body/Body';
+// import React from 'react';
+// import Body from '../Body/Body';
 
-const ClassificationPage: React.FC = () => {
-    return (
-        <>
-            <Body />
-        </>
-    );
-};
+// const ClassificationPage: React.FC = () => {
+//     return (
+//         <>
+//             <Body />
+//         </>
+//     );
+// };
 
-export default ClassificationPage;
+// export default ClassificationPage;
