@@ -1,4 +1,4 @@
-import FileManager from "components/validation/FileManager";
+import FileManager from "components/validation/old/FileManager";
 import React from "react";
 
 const ValidationPage: React.FC = () => {

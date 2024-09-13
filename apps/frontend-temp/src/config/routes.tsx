@@ -8,6 +8,7 @@ import ImageUploadPage from "components/pages/ImageUploadPage";
 import SignInPage from "components/pages/SignInPage";
 import HomePage from "components/pages/HomePage";
 import React, { ReactNode } from "react";
+import NewValidationPage from "components/validation/new/pages/NewValidationPage";
 
 interface RouteConfig {
   path: string;
@@ -24,7 +25,7 @@ const routes: RouteConfig[] = [
     name: 'Bem-vindo',
     component: <WelcomePage />,
     roles: ['admin', 'user'], // Protegida por roles
-    showInWelcomePage: true, // Reintroduzido
+    showInWelcomePage: false, // Reintroduzido
     showInSidebar: true,
   },
   {
@@ -46,7 +47,7 @@ const routes: RouteConfig[] = [
   {
     path: '/validation',
     name: 'Validar Imagens',
-    component: <ValidationPage />,
+    component: <NewValidationPage />,
     roles: ['admin'], // Protegida por roles
     showInWelcomePage: true, // Reintroduzido
     showInSidebar: true,
