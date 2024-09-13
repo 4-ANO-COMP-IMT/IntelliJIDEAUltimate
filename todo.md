@@ -14,21 +14,22 @@
 
 
 ## 09/09 
-* arrumar todos os microsservicos para funcionar com novo rabbitmq-utility 
+* arrumar todos os microsservicos para funcionar com novo rabbitmq-utility ✔️
 * lista de endpoint, nomes aos bois, definir em variaveis de ambientes no frontend quais urls representam os endpoints 
 * fazer o frontend
-    * login
-    * registrar usuario
-    * fazer upload de imagens
-    * classificação
+    * login ✔️
+    * registrar usuario ✔️
+    * fazer upload de imagens ✔️
+    * classificação ✔️
     * validação das classificações
+        * fazer um endpoint no ClassificationService para fornecer todos image_url de imagens classificadas
         * fazer um endpoint no ImageService, para fornecer todas as imagens
-        * fazer um endpoint no ClassificationService para fornecer todas image_id associados a um usuario
+        * fazer um endpoint no ClassificationService para fornecer todos image_url de imagens classificadas associadas a um usuario
         * avaliar a mudança de image_id para image_token
- 
 
 
- * ImageConsumer.proccessMessage() insere imagem no BD, mas a classe filha ClassificationServiceImageConsumer faz override, inserindo "imageAllocation" no BD,
-    então a função original nunca é usada?
-
+## 13/09
  * O ClassificationService não está replicando a tabela Sessions, embora use authMiddleWare, que acessa ela
+
+
+ * Register e Image service (checar os outros) fazem getInstance do Publisher toda vez q vai publicar. Guardar em uma variavel uma so vez
