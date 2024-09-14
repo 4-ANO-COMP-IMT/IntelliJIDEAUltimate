@@ -90,108 +90,104 @@ const ImageDrawingCanvas: React.FC = () => {
 
   const borderThickness = 2; // Espessura da borda em pixels
 
-  return (
-    <Container fluid className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
+return (
+  <Container fluid className="d-flex justify-content-center align-items-start" style={{ height: '90vh', marginTop: '20px' }}>
+    <div
+      className="canvas-container"
+      style={{
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 0,
+      }}
+    >
+      {/* Contêiner para a borda */}
       <div
-        className="canvas-container"
         style={{
-          position: 'relative',
+          border: `${borderThickness}px solid #007bff`,
+          borderRadius: '5px',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 0,
+          width: `${stageSize.width + 2 * borderThickness}px`,
+          height: `${stageSize.height + 2 * borderThickness}px`,
+          boxSizing: 'content-box', // Garante que o padding e a borda estão fora do conteúdo
+          backgroundColor: '#f8f9fa',
+          position: 'relative',
         }}
       >
-        {/* Contêiner para a borda */}
-        <div
+        <Stage
+          width={stageSize.width}
+          height={stageSize.height}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
           style={{
-            border: `${borderThickness}px solid #007bff`,
-            borderRadius: '5px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: `${stageSize.width + 2 * borderThickness}px`, // Aumenta o contêiner para incluir a borda
-            height: `${stageSize.height + 2 * borderThickness}px`, // Aumenta o contêiner para incluir a borda
-            boxSizing: 'content-box', // A borda não entra no tamanho total do canvas
-            backgroundColor: '#f8f9fa',
+            cursor: is_loading || is_sending ? 'not-allowed' : selectedTool === 'draw' ? 'crosshair' : 'default',
           }}
         >
-          <Stage
-            width={stageSize.width}
-            height={stageSize.height}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
+          <Layer>
+            {image && (
+              <KonvaImage
+                image={image}
+                width={stageSize.width}
+                height={stageSize.height}
+              />
+            )}
+
+            {rectangles.map((rect, index) => (
+              <FinalizedRectangle
+                key={index}
+                x={rect.x * stageSize.width - (rect.width * stageSize.width) / 2}
+                y={rect.y * stageSize.height - (rect.height * stageSize.height) / 2}
+                width={rect.width * stageSize.width}
+                height={rect.height * stageSize.height}
+                class_id={rect.class_id}
+                index={index}
+              />
+            ))}
+
+            {newRect && (
+              <Rect
+                x={newRect.x}
+                y={newRect.y}
+                width={newRect.width}
+                height={newRect.height}
+                stroke="red"
+                strokeWidth={2}
+                dash={[10, 5]}
+              />
+            )}
+          </Layer>
+        </Stage>
+
+        {popupPosition && (
+          <PopupMenu x={popupPosition.x} y={popupPosition.y} onConfirm={handleConfirmRectangle} />
+        )}
+
+        {(is_loading || is_sending) && (
+          <div
             style={{
-              cursor: is_loading || is_sending ? 'not-allowed' : selectedTool === 'draw' ? 'crosshair' : 'default',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: `${stageSize.width}px`,
+              height: `${stageSize.height}px`,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 20,
             }}
           >
-            <Layer>
-              {/* Renderizar a imagem de fundo */}
-              {image && (
-                <KonvaImage
-                  image={image}
-                  width={stageSize.width}
-                  height={stageSize.height}
-                />
-              )}
-
-              {/* Renderizar retângulos finalizados */}
-              {rectangles.map((rect, index) => (
-                <FinalizedRectangle
-                  key={index}
-                  x={rect.x * stageSize.width - (rect.width * stageSize.width) / 2}
-                  y={rect.y * stageSize.height - (rect.height * stageSize.height) / 2}
-                  width={rect.width * stageSize.width}
-                  height={rect.height * stageSize.height}
-                  class_id={rect.class_id}
-                  index={index}
-                />
-              ))}
-
-              {/* Renderizar o novo retângulo enquanto está sendo desenhado */}
-              {newRect && (
-                <Rect
-                  x={newRect.x}
-                  y={newRect.y}
-                  width={newRect.width}
-                  height={newRect.height}
-                  stroke="red"
-                  strokeWidth={2}
-                  dash={[10, 5]}
-                />
-              )}
-            </Layer>
-          </Stage>
-
-          {/* Renderizar o popup se um retângulo foi desenhado */}
-          {popupPosition && (
-            <PopupMenu x={popupPosition.x} y={popupPosition.y} onConfirm={handleConfirmRectangle} />
-          )}
-
-          {/* Overlay quando está carregando ou enviando */}
-          {(is_loading || is_sending) && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: `${stageSize.width + 2 * borderThickness}px`,
-                height: `${stageSize.height + 2 * borderThickness}px`,
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 20,
-              }}
-            >
-              <Spinner animation="border" variant="primary" />
-            </div>
-          )}
-        </div>
+            <Spinner animation="border" variant="primary" />
+          </div>
+        )}
       </div>
-    </Container>
-  );
+    </div>
+  </Container>
+);
 };
 
 export default ImageDrawingCanvas;
