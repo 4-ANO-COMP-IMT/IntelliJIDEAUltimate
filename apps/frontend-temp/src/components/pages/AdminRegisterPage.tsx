@@ -5,11 +5,13 @@ import { Form, Button, Spinner, Container } from 'react-bootstrap';
 import { useMutation } from 'react-query';
 import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth, User } from 'contexts/AuthContext';
 
 interface RegisterFormValues {
   username: string;
   password: string;
   role: 'user' | 'admin'; // O papel do usuário, pode ser 'user' ou 'admin'
+  session_token: string;
 }
 
 interface RegisterResponse {
@@ -17,7 +19,19 @@ interface RegisterResponse {
 }
 
 const registerUser = async (credentials: RegisterFormValues): Promise<RegisterResponse> => {
-  const response = await axios.post('http://localhost:3000/api/register/', credentials);
+  const req_body = {
+    "new_username": credentials.username,
+    "new_password": credentials.password,
+    "is_admin": credentials.role === 'admin'
+  }
+  console.log(req_body);
+  const headers = {
+    headers: {
+      'Authorization': `Bearer ${credentials.session_token}`
+    }
+  }
+
+  const response = await axios.post('http://localhost:3001/register', req_body, headers);
   return response.data; // Supondo que o servidor retorna { message: '...' }
 };
 
@@ -27,10 +41,11 @@ const AdminRegisterPage: React.FC = () => {
   const [role, setRole] = useState<'user' | 'admin'>('user');
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+
   const mutation = useMutation(registerUser, {
     onSuccess: (data) => {
       alert(data.message); // Mostra mensagem de sucesso
-      navigate('/admin'); // Redireciona para a página de administração
     },
     onError: (error: AxiosError) => {
       if (error.response && error.response.data) {
@@ -44,7 +59,7 @@ const AdminRegisterPage: React.FC = () => {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    mutation.mutate({ username, password, role });
+    mutation.mutate({ username, password, role, session_token: user!.session_token });
   };
 
   return (

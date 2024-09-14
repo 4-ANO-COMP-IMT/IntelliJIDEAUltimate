@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext, PropsWithChildre
 import Cookies from 'js-cookie';
 
 // Definição da interface do usuário
-interface User {
+export interface User {
   username: string;
   user_id: string;
   session_token: string;

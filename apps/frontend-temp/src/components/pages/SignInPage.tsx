@@ -6,6 +6,7 @@ import { useMutation } from 'react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignInAlt } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext'; // Importa o hook useAuth
+import axios from 'axios';
 
 interface LoginFormValues {
   username: string;
@@ -22,25 +23,26 @@ interface LoginResponse {
 
 const loginUser = async (credentials: LoginFormValues): Promise<LoginResponse> => {
   // Simula um login com dados hardcoded
-  if (credentials.username === 'admin' && credentials.password === 'admin123') {
+  let response: {
+    message: string,
+    session_token: string
+    user_id: number,
+    role: 'admin' | 'user'
+  };
+  
+  response = (await axios.post('http://localhost:3000/api/login', {
+    "username": credentials.username,
+    "password": credentials.password
+  })).data;
+  console.log(response);
+
     return {
-      message: 'Login successful',
-      session_token: 'admin_token_123',
-      user_id: '1',
-      role: 'admin',
-      username: 'admin',
+      message: response.message,
+      session_token: response.session_token,
+      user_id: response.user_id.toString(),
+      role: response.role,
+      username: credentials.username,
     };
-  } else if (credentials.username === 'user' && credentials.password === 'user123') {
-    return {
-      message: 'Login successful',
-      session_token: 'user_token_123',
-      user_id: '2',
-      role: 'user',
-      username: 'user',
-    };
-  } else {
-    throw new Error('Credenciais inválidas');
-  }
 };
 
 const SignIn: React.FC = () => {

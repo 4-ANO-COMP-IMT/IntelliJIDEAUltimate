@@ -55,7 +55,7 @@ const GridComponent: React.FC = () => {
 
                 return (
                   <div style={{ ...style, padding: '10px' }}>
-                    {item && <CardComponent item={item} x={columnIndex} y={rowIndex} />}
+                    {item && <CardComponent cardInfo={item} />}
                   </div>
                 );
               }}

@@ -15,11 +15,12 @@ export type User = {
 export class NewUser{
   private username: string;
   private password: string;
-  private is_admin: boolean = false;
+  private is_admin: boolean;
   
   constructor(username: string, password: string, is_admin: boolean = false){
     this.username = username;
     this.password = password;
+    this.is_admin = is_admin;
   }
 
   public getUsername(): string{

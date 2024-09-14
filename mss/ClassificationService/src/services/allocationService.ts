@@ -1,8 +1,7 @@
 import { pool } from '@intelij-ultimate/postgres-utility';
 import type { PoolClient } from '@intelij-ultimate/postgres-utility';
 import { AllocationImageDB } from '../interfaces';
-import { insertImageInDB, selectPendingImage, selectReservedImage, updateImageStatusToReserved } from '../queries/allocationImageQueries';
-
+import { selectAllClassifiedImages, selectPendingImage, selectReservedImage, updateImageStatusToReserved } from '../queries/allocationImageQueries';
 
 // Requisita uma imagem para o usuário classificar
 export async function requestImageForClassification(user_id: number): Promise<AllocationImageDB | null> {
@@ -26,6 +25,21 @@ export async function requestImageForClassification(user_id: number): Promise<Al
         return reserved;
     } catch (error: any) {
         await client.query('ROLLBACK');
+        console.error('Erro ao requisitar imagem para classificação: ' + error.message);
+        throw error;
+    } finally {
+        client.release();
+    }
+}
+
+// Requisita todas imagens (id e url)
+export async function requestAllClassifiedImages(): Promise<AllocationImageDB[]> {
+    const client: PoolClient = await pool.connect();
+    try {
+
+        return await selectAllClassifiedImages(client);
+
+    } catch (error: any) {
         console.error('Erro ao requisitar imagem para classificação: ' + error.message);
         throw error;
     } finally {

@@ -1,11 +1,6 @@
-import { requestImageForClassification } from "../services/allocationService";
+import { requestAllClassifiedImages, requestImageForClassification } from "../services/allocationService";
 
-
-
-import { Request, Response, NextFunction } from 'express';
-import { RectangleReq, RectangleDB, AllocationImageDB } from '../interfaces';
-import { insertClassification, getRectanglesByImageId } from '../services/classificationService'
-import { getUserIdFromToken } from '@intelij-ultimate/session-utility'
+import { Request, Response } from 'express';
 
 
 export const allocateImage = async function (req: Request, res: Response) {
@@ -23,6 +18,20 @@ export const allocateImage = async function (req: Request, res: Response) {
     }
     catch (err: any) {
         res.status(500).json({message: "Erro ao inserir no BD, provocando Rollback", error: err.message || "Erro desconhecido"});
+    }
+    
+}
+
+
+export const getClassifiedImageUrlsAndIds = async function (req: Request, res: Response) {
+
+    try {
+        let imageAllocations = await requestAllClassifiedImages();
+
+        res.status(200).json({imageAllocations});
+    }
+    catch (err: any) {
+        res.status(500).json({message: "Erro ao obter imagens classificadas", error: err.message || "Erro desconhecido"});
     }
     
 }

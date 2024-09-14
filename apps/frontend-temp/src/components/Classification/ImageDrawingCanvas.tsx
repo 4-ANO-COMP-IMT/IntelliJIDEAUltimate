@@ -10,11 +10,17 @@ import FinalizedRectangle from './FinalizedRectangle';
 const ImageDrawingCanvas: React.FC = () => {
   const { is_loading, is_sending, image_url, addRectangle, rectangles } = useAppContext();
   const { selectedTool } = useToolContext();
-  const [image] = useImage(image_url);
+  const [image] = useImage(image_url || 'http://localhost:3010/icons/LoadingImage.png');
   const [newRect, setNewRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [drawing, setDrawing] = useState(false);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
   const [stageSize, setStageSize] = useState<{ width: number; height: number }>({ width: 800, height: 600 });
+  const {loadNextImage} = useAppContext();
+
+  useEffect(() => {
+    loadNextImage()
+  }, []);
+
 
   useEffect(() => {
     if (image) {

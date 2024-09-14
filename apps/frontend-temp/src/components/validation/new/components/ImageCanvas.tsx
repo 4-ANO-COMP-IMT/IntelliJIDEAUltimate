@@ -1,15 +1,22 @@
 import React, { useRef, useEffect, useState } from 'react'; 
 import { Stage, Layer, Rect, Image as KonvaImage } from 'react-konva';
 import useImage from 'use-image';
-import { classes } from 'config/classes'
+import { classes } from 'config/classes';
+
+interface Rectangle {
+  x: number; // Centro X normalizado (0 a 1)
+  y: number; // Centro Y normalizado (0 a 1)
+  width: number; // Largura normalizada (0 a 1)
+  height: number; // Altura normalizada (0 a 1)
+  class_id: number;
+}
 
 interface ImageCanvasProps {
   imageUrl: string;
-  rectangles: { x: number; y: number; width: number; height: number; class_id: number }[];
+  rectangles: Rectangle[];
   width: number;
   height: number;
 }
-
 
 const getColorByClassId = (class_id: number) => {
   return classes[class_id]?.color || '#000000'; // Retorna a cor da classe ou preto se não houver
@@ -47,17 +54,27 @@ const ImageCanvas: React.FC<ImageCanvasProps> = ({ imageUrl, rectangles, width, 
         )}
 
         {/* Desenha os retângulos sobre a imagem */}
-        {rectangles.map((rect, index) => (
-          <Rect
-            key={index}
-            x={rect.x * canvasSize.width}
-            y={rect.y * canvasSize.height}
-            width={rect.width * canvasSize.width}
-            height={rect.height * canvasSize.height}
-            stroke={getColorByClassId(rect.class_id)}
-            strokeWidth={2}
-          />
-        ))}
+        {rectangles.map((rect, index) => {
+          const rectWidth = rect.width * canvasSize.width;
+          const rectHeight = rect.height * canvasSize.height;
+          const centerX = rect.x * canvasSize.width;
+          const centerY = rect.y * canvasSize.height;
+
+          return (
+            <Rect
+              key={index}
+              x={centerX}
+              y={centerY}
+              width={rectWidth}
+              height={rectHeight}
+              stroke={getColorByClassId(rect.class_id)}
+              strokeWidth={2}
+              // Centraliza o retângulo nas coordenadas (x, y)
+              offsetX={rectWidth / 2}
+              offsetY={rectHeight / 2}
+            />
+          );
+        })}
       </Layer>
     </Stage>
   );

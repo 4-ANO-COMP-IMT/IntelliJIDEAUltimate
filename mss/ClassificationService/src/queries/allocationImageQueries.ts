@@ -4,6 +4,7 @@ import { AllocationImageDB } from '../interfaces';
 const insertImageQuery = 'INSERT INTO allocation_images (image_id, image_url) VALUES ($1, $2) RETURNING *';
 const selectPendingImageQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'pending\' LIMIT 1';
 const selectReservedImageQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'reserved\' AND user_id = $1 LIMIT 1';
+const selectAllClassifiedImagesQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'classified\'';
 const updateImageToReservedQuery = 'UPDATE allocation_images SET classification_status = \'reserved\', timestamp_reservation = NOW(), user_id = $1 WHERE image_id = $2 RETURNING *';
 const updateImageToClassifiedQuery = 'UPDATE allocation_images SET classification_status = \'classified\', timestamp_classification = NOW() WHERE image_id = $1 RETURNING *';
 
@@ -31,6 +32,11 @@ export const selectPendingImage = async (client: PoolClient): Promise<Allocation
 export const selectReservedImage = async (client: PoolClient, user_id: number): Promise<AllocationImageDB | null> => {
     const result = await client.query(selectReservedImageQuery, [user_id]);
     return result.rows[0] || null;
+}
+
+export const selectAllClassifiedImages = async (client: PoolClient): Promise<AllocationImageDB[]> => {
+    const result = await client.query(selectAllClassifiedImagesQuery);
+    return result.rows;
 }
 
 export const updateImageStatusToReserved = async (client: PoolClient, image_id: number, user_id: number): Promise<AllocationImageDB> => {

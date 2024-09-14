@@ -1,4 +1,4 @@
-import { CardInfo } from '../components/ScrollWindowing/components/CardComponent';
+/* import { CardInfo } from '../components/ScrollWindowing/components/CardComponent';
 import { getRandomNumber } from './randomUtils'; // Função de números aleatórios
 
 // Função utilitária para gerar um número aleatório entre min e max
@@ -65,4 +65,4 @@ export const generateMockData2 = (): CardInfo[] => {
 
 
     return [imagem1, imagem2];
-};
+}; */

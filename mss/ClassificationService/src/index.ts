@@ -4,6 +4,7 @@ import { PORT } from './config/env';
 import cors from 'cors';
 import { ClassificationServiceImageConsumer } from './consumers/classificationServiceImage';
 import { ConsumerSingleton , connectToRabbitMQ} from '@intelij-ultimate/rabbitmq-utility';
+import { LoginConsumerSingleton } from '@intelij-ultimate/session-utility';
 
 
 const app = express();
@@ -22,6 +23,8 @@ async function startServer() {
     await connectToRabbitMQ();
    
     await ClassificationServiceImageConsumer.createInstance("classification-service");
+
+    await LoginConsumerSingleton.createInstance("classification-service");
 
     await ConsumerSingleton.startAllConsumers()
 

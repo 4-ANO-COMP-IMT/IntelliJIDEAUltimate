@@ -5,7 +5,7 @@ import { useToolContext } from './ToolContext';
 
 const ClassificationTool: React.FC = () => {
   const { selectedTool, setSelectedTool } = useToolContext();
-  const { sendRectangles, loadNextImage, is_loading, is_sending, rectangles } = useAppContext();
+  const { sendRectangles, loadNextImage, is_loading, is_sending, image_id } = useAppContext();
 
   const handleSend = async () => {
     await sendRectangles();
@@ -38,7 +38,7 @@ const ClassificationTool: React.FC = () => {
           <Button
             variant="success"
             onClick={handleSend}
-            disabled={is_loading || is_sending}
+            disabled={is_loading || is_sending || !image_id}
           >
             {is_sending ? (
               <>
