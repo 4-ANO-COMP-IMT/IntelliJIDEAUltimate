@@ -48,25 +48,35 @@ const ImageUploadPage: React.FC = () => {
   };
 
   const handleSend = async () => {
-    // Aqui é onde você faria a requisição para o servidor
-    // Exemplo de como enviar as imagens utilizando axios (comentado):
-    /*
+    
     const formData = new FormData();
     files.forEach((fileData) => {
       formData.append('images', fileData.file);
     });
     
     try {
-      const response = await axios.post('http://localhost:3000/upload', formData, {
+      const response = await axios.post('http://localhost:3003/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       console.log('Imagens enviadas com sucesso:', response.data);
-    } catch (error) {
-      console.error('Erro ao enviar imagens:', error);
+      alert("Images uploaded");
+    } catch (error: any) {
+      alert("Error: Upload failed");
+      if (error.response) {
+        // O servidor respondeu com um código de status fora da faixa 2xx
+        console.error('Status:', error.response.status);
+        console.error('Mensagem de erro:', error.response.data.message); // Mensagem de erro enviada pelo backend
+      } else if (error.request) {
+        // A requisição foi feita, mas não houve resposta
+        console.error('Nenhuma resposta recebida:', error.request);
+      } else {
+        // Algum outro erro ocorreu na configuração da requisição
+        console.error('Erro na configuração:', error.message);
+      }
     }
-    */
+   
   };
 
   return (
