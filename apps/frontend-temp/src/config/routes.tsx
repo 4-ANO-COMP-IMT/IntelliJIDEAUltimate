@@ -9,6 +9,7 @@ import HomePage from "components/pages/HomePage";
 import React, { ReactNode } from "react";
 import NewValidationPage from "components/validation/new/pages/NewValidationPage";
 import ClassificationPage from "components/Classification/ClassificationPage";
+import ForbiddenPage from "components/pages/ForbiddenPage";
 
 interface RouteConfig {
   path: string;
@@ -79,8 +80,8 @@ const routes: RouteConfig[] = [
   {
     path: '/forbidden',
     name: 'Acesso Negado',
-    component: <div>Você não tem permissão para acessar esta página, contate um Administrador</div>,
-    roles: ["user"], // Sem proteção
+    component: <ForbiddenPage />,
+    roles: ['admin', 'user'], // Sem proteção
     showInWelcomePage: false, // Reintroduzido
     showInSidebar: false,
   }
