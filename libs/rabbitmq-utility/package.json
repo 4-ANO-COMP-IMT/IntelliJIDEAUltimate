@@ -1,6 +1,6 @@
 {
     "name": "@intelij-ultimate/rabbitmq-utility",
-    "version": "1.0.20",
+    "version": "1.1.4",
     "description": "A RabbitMQ utility library for Node.js with TypeScript",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/seuusuario/my-rabbitmq-library.git"
+        "url": "git+https://github.com/seuusuario/my-rabbitmq-library.git"
     },
     "author": "Seu Nome",
     "license": "MIT",

@@ -1,2 +1,3 @@
 export * from './rabbitmq';
-export * from './consumer';
+export * from './ConsumerSingleton';
+export * from './PublisherSingleton';

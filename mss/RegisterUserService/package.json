@@ -15,22 +15,22 @@
     "@types/amqplib": "^0.10.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^22.5.2",
-    "@types/pg": "^8.11.8",
+    "@types/node": "^22.5.4",
+    "@types/pg": "^8.11.10",
     "nodemon": "^3.1.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
-    "@intelij-ultimate/middleware-utility": "^1.0.8",
-    "@intelij-ultimate/rabbitmq-utility": "^1.0.20",
-    "@intelij-ultimate/session-utility": "^1.0.17",
-    "@intelij-ultimate/user-utility": "^1.0.3",
+    "@intelij-ultimate/middleware-utility": "^1.0.9",
+    "@intelij-ultimate/rabbitmq-utility": "^1.1.4",
+    "@intelij-ultimate/session-utility": "^1.1.3",
+    "@intelij-ultimate/user-utility": "^1.1.4",
     "amqplib": "^0.10.4",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "pg": "^8.12.0"
   }
 }
