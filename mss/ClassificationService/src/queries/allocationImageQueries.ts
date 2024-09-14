@@ -4,7 +4,7 @@ import { AllocationImageDB } from '../interfaces';
 const insertImageQuery = 'INSERT INTO allocation_images (image_id, image_url) VALUES ($1, $2) RETURNING *';
 const selectPendingImageQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'pending\' LIMIT 1';
 const selectReservedImageQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'reserved\' AND user_id = $1 LIMIT 1';
-const selectAllClassifiedImagesQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'classified\'';
+const selectAllClassifiedImagesQuery = 'SELECT * FROM allocation_images WHERE classification_status = \'classified\' ORDER BY timestamp_classification DESC';
 const updateImageToReservedQuery = 'UPDATE allocation_images SET classification_status = \'reserved\', timestamp_reservation = NOW(), user_id = $1 WHERE image_id = $2 RETURNING *';
 const updateImageToClassifiedQuery = 'UPDATE allocation_images SET classification_status = \'classified\', timestamp_classification = NOW() WHERE image_id = $1 RETURNING *';
 

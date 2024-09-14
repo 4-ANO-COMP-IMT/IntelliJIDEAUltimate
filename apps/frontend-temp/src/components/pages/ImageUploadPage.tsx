@@ -18,7 +18,7 @@ const ImageUploadPage: React.FC = () => {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
-        const img = new window.Image(); // Aqui corrigimos para evitar conflito
+        const img = new window.Image(); // Correto, sem "window"
         img.src = e.target?.result as string;
         img.onload = () => {
           const newFile: ImageData = {
@@ -48,7 +48,6 @@ const ImageUploadPage: React.FC = () => {
   };
 
   const handleSend = async () => {
-    
     const formData = new FormData();
     files.forEach((fileData) => {
       formData.append('images', fileData.file);
@@ -60,95 +59,61 @@ const ImageUploadPage: React.FC = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Imagens enviadas com sucesso:', response.data);
-      alert("Images uploaded");
+      console.log('Images uploaded successfully:', response.data);
+      alert("Images uploaded successfully");
+      setFiles([]); // Clear files list after successful upload
     } catch (error: any) {
       alert("Error: Upload failed");
-      if (error.response) {
-        // O servidor respondeu com um código de status fora da faixa 2xx
-        console.error('Status:', error.response.status);
-        console.error('Mensagem de erro:', error.response.data.message); // Mensagem de erro enviada pelo backend
-      } else if (error.request) {
-        // A requisição foi feita, mas não houve resposta
-        console.error('Nenhuma resposta recebida:', error.request);
-      } else {
-        // Algum outro erro ocorreu na configuração da requisição
-        console.error('Erro na configuração:', error.message);
-      }
+      console.error('Error:', error);
     }
-   
+  };
+
+  const handleRemove = (index: number) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
   return (
     <Container className="mt-4">
       <Row className="justify-content-center">
         <Col md={8}>
-          <div
-            {...getRootProps()}
-            className="border p-5 text-center mb-4"
-            style={{
-              borderStyle: 'dashed',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              backgroundColor: '#f9f9f9',
-            }}
-          >
+          <div {...getRootProps()} className="border p-5 text-center mb-4" style={{ borderStyle: 'dashed', borderRadius: '10px', cursor: 'pointer', backgroundColor: '#f9f9f9' }}>
             <input {...getInputProps()} />
             <FaCloudUploadAlt size={50} className="text-muted mb-3" />
-            <p>Arraste e solte as imagens aqui, ou clique para selecionar</p>
+            <p>Drag and drop images here, or click to select files</p>
           </div>
         </Col>
       </Row>
 
       <Row className="justify-content-center">
         <Col md={8}>
-          <Button
-            variant="primary"
-            className="mb-3"
-            onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-          >
-            <FaFileUpload /> Selecionar Mais Imagens
+          <Button variant="primary" className="mb-3" onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}>
+            <FaFileUpload /> Select More Images
           </Button>
-
           <Button variant="danger" className="mb-3 ms-3" onClick={handleClear}>
-            <FaTrash /> Limpar
+            <FaTrash /> Clear All
           </Button>
           <Button variant="success" className="mb-3 ms-3" onClick={handleSend}>
-            Enviar
+            <FaCloudUploadAlt /> Upload
           </Button>
         </Col>
       </Row>
 
       <Row className="justify-content-center">
         <Col md={8}>
-          <div
-            style={{
-              maxHeight: '300px',
-              overflowY: 'auto',
-              border: '1px solid #ddd',
-              borderRadius: '10px',
-              padding: '10px',
-              backgroundColor: '#f9f9f9',
-            }}
-          >
+          <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '10px', padding: '10px', backgroundColor: '#f9f9f9' }}>
             <ListGroup>
               {files.map((fileData, index) => (
-                <ListGroup.Item key={index} className="d-flex align-items-center">
-                  <Image
-                    src={fileData.preview}
-                    alt="preview"
-                    width={50}
-                    height={50}
-                    style={{ objectFit: 'cover', marginRight: '10px' }}
-                  />
-                  <div>
-                    <p className="mb-0">
-                      <strong>{fileData.file.name}</strong> - {(fileData.size / 1024).toFixed(2)} KB
-                    </p>
-                    <p className="mb-0">
-                      Dimensões: {fileData.dimensions.width} x {fileData.dimensions.height}px
-                    </p>
+                <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
+                  <div className="d-flex align-items-center">
+                    <Image src={fileData.preview} alt="preview" width={50} height={50} style={{ objectFit: 'cover', marginRight: '10px' }} />
+                    <div>
+                      <p className="mb-0"><strong>{fileData.file.name}</strong> - {(fileData.size / 1024).toFixed(2)} KB</p>
+                      <p className="mb-0">Dimensions: {fileData.dimensions.width} x {fileData.dimensions.height}px</p>
+                    </div>
                   </div>
+                  <Button variant="outline-danger" size="sm" onClick={() => handleRemove(index)}>
+                    <FaTrash />
+                  </Button>
                 </ListGroup.Item>
               ))}
             </ListGroup>

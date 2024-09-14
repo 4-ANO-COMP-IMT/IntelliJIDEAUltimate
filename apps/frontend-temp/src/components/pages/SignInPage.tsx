@@ -100,7 +100,7 @@ const SignIn: React.FC = () => {
           </Alert>
         )}
 
-        {/* Botões temporários de login rápido */}
+        {/* {//Botões temporários de login rápido}
         {showTempButtons && (
           <Alert variant="warning" onClose={() => setShowTempButtons(false)} dismissible>
             <Row>
@@ -126,7 +126,7 @@ const SignIn: React.FC = () => {
               </Col>
             </Row>
           </Alert>
-        )}
+        )} */}
 
         <Form.Group controlId="formUsername">
           <Form.Label>Username</Form.Label>

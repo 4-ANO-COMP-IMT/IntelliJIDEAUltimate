@@ -3,7 +3,10 @@ import React from "react";
 
 const ValidationPage: React.FC = () => {
     return (
-        <FileManager />
+    <>
+        {/* <FileManager /> */}
+        
+    </>
     );
 }
 

@@ -13,9 +13,12 @@ const NewValidationPage: React.FC = () => {
         <ModalProvider>
           <div className="container mt-4">
             <h2>Validação de imagens</h2>
-            <FilterForm />
+            {/* <FilterForm /> */}
             <GridComponent />
             <ImageModal />
+            <div style={{ marginTop: '20px' }}>
+            
+            </div>
           </div>
         </ModalProvider>
       </QueryProvider>
