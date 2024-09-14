@@ -6,23 +6,24 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAllowedRoles } from 'contexts/AllowedRolesContext';
 
 const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
+  const { allowedRoles } = useAllowedRoles();
   const { user, isAuthenticated } = useAuth();
-  const { allowedRoles } = useAllowedRoles(); // Obtenha os papéis permitidos
   const location = useLocation();
 
-  // Caso o usuário não esteja autenticado, redirecione para a página de login com a rota atual como parâmetro
   if (!isAuthenticated) {
+    // Redireciona para login, mantendo a rota de onde o usuário veio
     const redirectTo = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/sign-in?redirect=${redirectTo}`} replace />;
   }
 
-  // Verifica se o papel do usuário está entre os papéis permitidos para acessar a rota
   if (user?.role && !allowedRoles.includes(user.role)) {
-    console.log('User does not have the required role, redirecting to forbidden, user:', user);
-    return <Navigate to="/forbidden" replace />;
+    // Verifica se o usuário já está em "/forbidden" para evitar loops
+    if (location.pathname !== '/forbidden') {
+      return <Navigate to="/forbidden" state={{ from: location }} replace />;
+    }
   }
 
-  return <>{children}</>; // Se tudo estiver correto, renderiza os filhos
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

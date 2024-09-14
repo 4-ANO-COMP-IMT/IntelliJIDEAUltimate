@@ -81,7 +81,7 @@ const routes: RouteConfig[] = [
     path: '/forbidden',
     name: 'Acesso Negado',
     component: <ForbiddenPage />,
-    roles: ['admin', 'user'], // Sem proteção
+    roles: [], // Sem proteção
     showInWelcomePage: false, // Reintroduzido
     showInSidebar: false,
   }
