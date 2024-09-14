@@ -17,8 +17,8 @@ interface AppContextType {
   rectangles: Rectangle[];
   image_url: string | null;
   image_id: number | null;
-  image_width: number | null;    // Adicionado
-  image_height: number | null;   // Adicionado
+  image_width: number | null;
+  image_height: number | null;
   setIsLoading: (value: boolean) => void;
   setIsSending: (value: boolean) => void;
   addRectangle: (rect: Rectangle) => void;
@@ -26,7 +26,7 @@ interface AppContextType {
   clearRectangles: () => void;
   setImageUrl: (url: string) => void;
   setImageId: (id: number) => void;
-  setImageDimensions: (width: number, height: number) => void; // Adicionado
+  setImageDimensions: (width: number, height: number) => void;
   sendRectangles: () => Promise<void>;
   loadNextImage: () => Promise<void>;
 }
@@ -47,8 +47,8 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [rectangles, setRectangles] = useState<Rectangle[]>([]);
   const [image_url, setImageUrl] = useState<string | null>(null);
   const [image_id, setImageId] = useState<number | null>(null);
-  const [image_width, setImageWidth] = useState<number | null>(null);    // Adicionado
-  const [image_height, setImageHeight] = useState<number | null>(null);  // Adicionado
+  const [image_width, setImageWidth] = useState<number | null>(null);
+  const [image_height, setImageHeight] = useState<number | null>(null);
 
   const { user } = useAuth();
 
@@ -64,7 +64,6 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
     setRectangles([]);
   };
 
-  // Função para definir as dimensões da imagem
   const setImageDimensions = (width: number, height: number) => {
     setImageWidth(width);
     setImageHeight(height);
@@ -82,13 +81,13 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
     try {
       console.log('Sending rectangles:', rectangles);
 
-      // Normalizar os retângulos
+      // Normalizar os retângulos para enviar à API
       const newRectangles = rectangles.map((rect) => ({
         class_name: classes[rect.class_id].name,
-        center_x: rect.x / image_width,      // Normalizado
-        center_y: rect.y / image_height,     // Normalizado
-        width: rect.width / image_width,      // Normalizado
-        height: rect.height / image_height,    // Normalizado
+        center_x: rect.x,      // Já normalizado
+        center_y: rect.y,      // Já normalizado
+        width: rect.width,     // Já normalizado
+        height: rect.height,   // Já normalizado
       }));
 
       const reqBody = {
@@ -99,16 +98,16 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
       const headers = {
         headers: {
           'Authorization': `Bearer ${user?.session_token}`,
-          'Content-Type': 'application/json', // Garantir que o corpo da requisição seja JSON
+          'Content-Type': 'application/json',
         },
       };
 
+      // Conexão com a API de envio de retângulos
       await axios.post('http://localhost:3002/api/classification', reqBody, headers);
 
-      // Opcional: Adicionar feedback ao usuário sobre o sucesso
       alert('Retângulos enviados com sucesso!');
     } catch (error) {
-      console.error('Error sending rectangles:', error);
+      console.error('Erro ao enviar retângulos:', error);
       alert('Erro ao enviar retângulos. Verifique o console para mais detalhes.');
     } finally {
       setIsSending(false);
@@ -121,8 +120,8 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
     setIsLoading(true);
     setImageId(null);
     setImageUrl(null);
-    setImageWidth(null);   // Resetar dimensões anteriores
-    setImageHeight(null);  // Resetar dimensões anteriores
+    setImageWidth(null);
+    setImageHeight(null);
 
     try {
       console.log('Loading next image...');
@@ -133,6 +132,7 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
         },
       };
 
+      // Conexão com a API para alocar a próxima imagem
       const response = await axios.post('http://localhost:3002/api/allocate', null, headers);
       const { image_id, image_url } = response.data;
 
@@ -149,19 +149,15 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
         };
         img.onerror = (err) => reject(err);
       });
-
     } catch (error: any) {
       if (error.response) {
-        // O servidor respondeu com um código de status fora da faixa 2xx
         console.error('Status:', error.response.status);
-        console.error('Mensagem de erro:', error.response.data.message); // Mensagem de erro enviada pelo backend
+        console.error('Mensagem de erro:', error.response.data.message);
         alert(error.response.data.message);
       } else if (error.request) {
-        // A requisição foi feita, mas não houve resposta
         console.error('Nenhuma resposta recebida:', error.request);
       } else {
-        // Algum outro erro ocorreu na configuração da requisição
-        console.error('Erro no loading next image:', error);
+        console.error('Erro ao carregar a próxima imagem:', error);
       }
     } finally {
       setIsLoading(false);
@@ -176,8 +172,8 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
         rectangles,
         image_url,
         image_id,
-        image_width,   // Adicionado
-        image_height,  // Adicionado
+        image_width,
+        image_height,
         setIsLoading,
         setIsSending,
         addRectangle,
@@ -185,7 +181,7 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
         clearRectangles,
         setImageUrl,
         setImageId,
-        setImageDimensions, // Adicionado
+        setImageDimensions,
         sendRectangles,
         loadNextImage,
       }}
