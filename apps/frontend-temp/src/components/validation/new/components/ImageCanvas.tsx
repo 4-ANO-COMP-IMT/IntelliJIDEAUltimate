@@ -63,15 +63,12 @@ const ImageCanvas: React.FC<ImageCanvasProps> = ({ imageUrl, rectangles, width, 
           return (
             <Rect
               key={index}
-              x={centerX}
-              y={centerY}
+              x={centerX - rectWidth / 2}
+              y={centerY - rectHeight / 2}
               width={rectWidth}
               height={rectHeight}
               stroke={getColorByClassId(rect.class_id)}
               strokeWidth={2}
-              // Centraliza o retângulo nas coordenadas (x, y)
-              offsetX={rectWidth / 2}
-              offsetY={rectHeight / 2}
             />
           );
         })}

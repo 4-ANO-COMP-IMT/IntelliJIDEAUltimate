@@ -43,10 +43,9 @@ const ImageModal: React.FC = () => {
           };
         });
 
-        setRectangles(rectList); // Corrigido para definir rectList
+        setRectangles(rectList);
       } catch (error) {
         console.error('Erro ao buscar classificações:', error);
-        // Opcional: adicionar lógica para lidar com erros, como exibir uma mensagem ao usuário
       } finally {
         setIsLoading(false);
       }
@@ -61,14 +60,12 @@ const ImageModal: React.FC = () => {
   const classificatedDate = new Date(selectedCard.timestamp_classification);
   const classificationTimeSpan = classificatedDate.getTime() - reservedDate.getTime();
 
-  // Formatar o tempo de classificação para minutos e segundos
   const totalSeconds = Math.floor(classificationTimeSpan / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   const milliseconds = classificationTimeSpan % 1000;
   const formattedTime = `${minutes}m ${seconds}.${milliseconds}s`;
 
-  // Formatar as datas para uma representação mais amigável
   const formattedReservedDate = new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -87,8 +84,8 @@ const ImageModal: React.FC = () => {
       <Modal.Body>
         <Row className="justify-content-center">
           <Col xs={12}>
-            {/* Ajusta o tamanho do canvas para se adaptar ao modal */}
-            <div style={{ width: '100%', maxHeight: '500px', overflow: 'hidden' }}>
+            {/* Centralizar o canvas horizontalmente */}
+            <div style={{ display: 'flex', justifyContent: 'center', maxHeight: '500px', overflow: 'hidden' }}>
               <ImageCanvas
                 imageUrl={selectedCard.image_url}
                 rectangles={rectangles}
@@ -99,7 +96,6 @@ const ImageModal: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Timestamps centralizados e formatados */}
         <Row className="text-center mt-3">
           <Col>
             <p>
@@ -114,7 +110,6 @@ const ImageModal: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Lista de Retângulos */}
         <h5>Rectangles:</h5>
         {isLoading ? (
           <div className="d-flex justify-content-center align-items-center" style={{ height: '100px' }}>

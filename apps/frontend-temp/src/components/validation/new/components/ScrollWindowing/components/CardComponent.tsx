@@ -18,9 +18,7 @@ export interface CardInfo {
 }
 
 interface CardComponentProps {
-  item: CardInfo;
-  x: number;
-  y: number;
+  cardInfo: CardInfo;
 }
 
 const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
@@ -29,8 +27,8 @@ const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
   const [rectangles, setRectangles] = useState<Rectangle[]>([]);
 
   useEffect(() => {
-    const func = async ()=>{
-      const response = await axios.get('http://localhost:3002/api/classification/' + cardInfo.image_id);
+    const fetchClassifications = async () => {
+      const response = await axios.get(`http://localhost:3002/api/classification/${cardInfo.image_id}`);
       
       const classifications:{
         "rectangle_id": number,
@@ -40,20 +38,21 @@ const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
         "center_y": string,
         "width": string,
         "height": string
-    }[] = response.data.classifications;
+      }[] = response.data.classifications;
 
-    const rectList: Rectangle[] = classifications.map((classification) => ({
-      x: parseFloat(classification.center_x),
-      y: parseFloat(classification.center_y),
-      width: parseFloat(classification.width),
-      height: parseFloat(classification.height),
-      class_id: classes.find((item)=>item.name === classification.class_name)!.id
-    }));
+      const rectList: Rectangle[] = classifications.map((classification) => ({
+        x: parseFloat(classification.center_x),
+        y: parseFloat(classification.center_y),
+        width: parseFloat(classification.width),
+        height: parseFloat(classification.height),
+        class_id: classes.find((item)=>item.name === classification.class_name)!.id
+      }));
 
-      setRectangles(response.data.classifications)
-    }
-    func();
-  }, [])
+      setRectangles(rectList);
+    };
+    
+    fetchClassifications();
+  }, [cardInfo]);
 
   const handleCardClick = () => {
     openModal(cardInfo);
@@ -66,7 +65,8 @@ const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
       transition={{ duration: 0.5 }}
     >
       <Card className="mb-4 shadow-sm card-container" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
-        <div className="card-image-container">
+        {/* Centralizar o canvas horizontalmente */}
+        <div style={{ display: 'flex', justifyContent: 'center', maxHeight: '200px', overflow: 'hidden' }}>
           <ImageCanvas
             imageUrl={cardInfo.image_url}
             rectangles={rectangles}
@@ -76,7 +76,7 @@ const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
         </div>
         <Card.Body className="text-center">
           <Card.Title>{'user ID: ' + cardInfo.user_id}</Card.Title>
-          <p>{Date.parse(cardInfo.timestamp_classification).toLocaleString()}</p>
+          <p>{new Date(cardInfo.timestamp_classification).toLocaleString()}</p>
         </Card.Body>
       </Card>
     </motion.div>

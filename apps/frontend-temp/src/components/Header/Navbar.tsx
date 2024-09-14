@@ -42,7 +42,7 @@ const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
 				Sistema Geral de Classificação (SGC)
 			</Navbar.Text>
 			<Nav className="ml-auto d-flex align-items-center gap-2">
-				<Button variant="success" className="mr-5">
+				{/* <Button variant="success" className="mr-5">
 					Metas
 				</Button>
 				<Button variant="success" className="mr-5" style={buttonStyle}>
@@ -66,7 +66,7 @@ const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
 					>
 						10
 					</Badge>
-				</Button>
+				</Button> */}
 
 				{/* Botão de Logout */}
 				<Button variant="danger" className="ml-3" onClick={handleLogout}>
