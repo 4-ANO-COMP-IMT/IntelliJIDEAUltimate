@@ -15,6 +15,7 @@ import { ImagePublisherSingleton, ImageAllocation, Image, ImageDB } from '@intel
 
 // Configuração do express
 const app = express();
+app.use(cors());
 app.use(express.json()); // Para processar o corpo JSON das requisições
 
 
