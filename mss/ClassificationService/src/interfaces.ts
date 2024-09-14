@@ -33,7 +33,7 @@ CREATE TABLE rectangles (
     center_x NUMERIC NOT NULL,          -- Coluna center_x do tipo numérico (pode especificar precisão se necessário)
     center_y NUMERIC NOT NULL,          -- Coluna center_y do tipo numérico
     width NUMERIC NOT NULL,             -- Coluna width do tipo numérico
-    height NUMERIC NOT NULL,            -- Coluna height do tipo numérico
+    height NUMERIC NOT NULL             -- Coluna height do tipo numérico
 );
 
 CREATE TABLE allocation_images (
