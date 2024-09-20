@@ -1,3 +1,4 @@
-export * from './rabbitmq';
-export * from './ConsumerSingleton';
-export * from './PublisherSingleton';
+export * from './RabbitMQConnectionManager';
+export * from './RabbitMQConsumer';
+export * from './RabbitMQPublisher';
+export * from './GlobalRabbitMQService';

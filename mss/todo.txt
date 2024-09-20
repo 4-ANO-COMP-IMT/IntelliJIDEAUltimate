@@ -1,0 +1,9 @@
+CompatibilityService:
+tem a lista de todas as classificações e emite um evento ao terminar de processar em todas as ias daquela imagem, e manda todas as classificações na mensagem do evento.
+
+GroupService:
+tem a lista e todas as regras de negocio para atribuir as imagens a grupos (pools) especificas. e emite eventos informando as imagens adicionadas a quais grupos.
+
+classificationService:
+tem a lista de imagens em cada grupo, e quando um classificador que pertence aquele grupo pede uma imagem, o servico reserva aquela imagem para ele por um tempo determinado,esse servico controla quantas pessoas podem classificar uma imagem especifica . e emite um evento quando uma imagem é alocada para um classificador.
+quando todos os classificadores enviarem uma requisição informando as classificações, o servico dispara um evento.
