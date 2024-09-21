@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="sfJwIzJGjw18PU34vVlC" name="Page-1">
-        <mxGraphModel dx="522" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1290" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -13,7 +13,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="4" value="ImageService&lt;br&gt;" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="190" y="580" width="180" height="120" as="geometry"/>
+                    <mxGeometry x="180" y="420" width="180" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="37" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" edge="1">
                     <mxGeometry relative="1" as="geometry">
@@ -26,7 +26,7 @@
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="58" value="ClassificateService" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="190" y="740" width="180" height="120" as="geometry"/>
+                    <mxGeometry x="170" y="620" width="180" height="120" as="geometry"/>
                 </mxCell>
                 <mxCell id="75" style="edgeStyle=none;html=1;" parent="1" source="61" target="58" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
