@@ -37,7 +37,7 @@ ClassificationService:
 ```bash
 cd ./ClassificationService
 ```
-profile: 
+ImageService
 ```bash
 cd ./ImageService
 ```
