@@ -45,7 +45,7 @@ RegisterUserService:
 ```bash
 cd ./RegisterUserService
 ```
-inicie-os com o comando:
+Inicie cada um com o comando:
 ```bash
 npm i
 ```
