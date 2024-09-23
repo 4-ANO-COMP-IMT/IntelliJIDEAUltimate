@@ -1,11 +1,11 @@
 
 ### Integrantes:
 
-- **Eduardo Lucas Felippa               20.01913-0
-- **Felipe Rodrigues Peixoto da Silva   21.00127-8
-- **João Pedro Soares dos Santos        21.00410-2
-- **Kaiven Yang Su                      20.02146-0
-- **Nathan Zanoni da Hora               21.01208-3
+- **Eduardo Lucas Felippa**               20.01913-0
+- **Felipe Rodrigues Peixoto da Silva**   21.00127-8
+- **João Pedro Soares dos Santos**        21.00410-2
+- **Kaiven Yang Su**                      20.02146-0
+- **Nathan Zanoni da Hora**               21.01208-3
 
 
 # Sistema Geral de Classificação
