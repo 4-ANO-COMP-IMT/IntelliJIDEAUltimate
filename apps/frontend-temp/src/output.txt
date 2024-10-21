@@ -1,0 +1,4459 @@
+Conteúdo dos arquivos no diretório '.':
+========================================================
+Arquivo: App.tsx
+----------------------
+// src/App.tsx
+
+import React from 'react';
+import { createBrowserRouter, RouteObject, RouterProvider } from 'react-router-dom';
+import routes from './config/routes'; // Importa as rotas
+import ProtectedRoute from './components/routes/ProtectedRoute'; // Componente que protege as rotas
+import PageLayout from './components/layouts/PageLayout'; // Layout principal
+import { AuthProvider } from './contexts/AuthContext';
+import { AllowedRolesProvider } from './contexts/AllowedRolesContext'; // Para encapsular com roles
+
+// Função para encapsular a rota com ProtectedRoute e AllowedRolesProvider dinamicamente
+const withRoleProtection = (component: React.ReactNode, roles: ("admin" | "user")[]) => {
+  return (
+    <AllowedRolesProvider roles={roles}>
+      <PageLayout>
+        <ProtectedRoute>
+          {component}
+        </ProtectedRoute>
+      </PageLayout>
+    </AllowedRolesProvider>
+  );
+};
+
+// Cria o roteador dinâmico com base nas rotas definidas no routes.ts
+let new_routes: RouteObject[] = routes.map(route => {
+  const element = route.roles.length > 0
+    ? withRoleProtection(route.component, route.roles) // Se houver roles, protege a rota
+    : route.component; // Se não houver roles, renderiza o componente normalmente
+
+  return {
+    path: route.path,
+    element,
+  };
+});
+
+const router = createBrowserRouter(new_routes);
+
+const App: React.FC = () => {
+  return (
+      <RouterProvider router={router} />
+  );
+};
+
+export default App;
+
+========================================================
+Pasta: components
+----------------------
+Pasta: components/Body
+----------------------
+Arquivo: components/Body/Body.tsx
+----------------------
+import React, { useState } from "react";
+import { Container, Tab, Tabs } from "react-bootstrap";
+import MainTab from "./Tabs/MainTab/MainTab";
+import FilterTab from "./Tabs/FilterTab/FilterTab";
+
+const Body: React.FC = () => {
+	const [key, setKey] = useState<string>("main");
+
+	return (
+		<Container style={{ marginTop: "5px" }}>
+			<Tabs
+				defaultActiveKey="main"
+				id="uncontrolled-tab-example"
+				className="mb-3"
+				activeKey={key}
+				onSelect={(k: string | null) => setKey(k || "")}
+			>
+				<Tab eventKey="main" title="Main">
+					<MainTab isOpen={key === "main"} />
+				</Tab>
+				<Tab eventKey="filter" title="Filter">
+					<FilterTab isOpen={key === "filter"} />
+				</Tab>
+			</Tabs>
+		</Container>
+	);
+};
+
+export default Body;
+
+========================================================
+Pasta: components/Body/Tabs
+----------------------
+Pasta: components/Body/Tabs/FilterTab
+----------------------
+Arquivo: components/Body/Tabs/FilterTab/ClassFilter.tsx
+----------------------
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const classOptions = [
+	{ value: 1, label: "Classe 1" },
+	{ value: 2, label: "Classe 2" },
+	{ value: 3, label: "Classe 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const ClassFilter: React.FC = () => {
+	const [selectedClasses, setSelectedClasses] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="classFilter">
+			<Form.Label>Classe</Form.Label>
+			<Select
+				isMulti
+				options={classOptions}
+				value={selectedClasses}
+				onChange={(newValue, actionMeta) =>
+					setSelectedClasses(Array.from(newValue))
+				}
+				placeholder="Selecione as classes"
+			/>
+		</Form.Group>
+	);
+};
+
+export default ClassFilter;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/DateFilter.tsx
+----------------------
+import React, { useState } from "react";
+import { Form, Row, Col } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const DateFilter: React.FC = () => {
+	const [startDate, setStartDate] = useState<Date | null>(null);
+	const [endDate, setEndDate] = useState<Date | null>(null);
+
+	return (
+		<Form.Group controlId="dateFilter">
+			<Form.Label>Data</Form.Label>
+			<Row>
+				<Col>
+					<Form.Label>Início</Form.Label>
+					<DatePicker
+						selected={startDate}
+						onChange={(date) => setStartDate(date)}
+						className="form-control"
+						placeholderText="Data de Início"
+					/>
+				</Col>
+				<Col>
+					<Form.Label>Fim</Form.Label>
+					<DatePicker
+						selected={endDate}
+						onChange={(date) => setEndDate(date)}
+						className="form-control"
+						placeholderText="Data de Fim"
+					/>
+				</Col>
+			</Row>
+		</Form.Group>
+	);
+};
+
+export default DateFilter;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/FilterTab.tsx
+----------------------
+import React from "react";
+import { Card, Form, Tab } from "react-bootstrap";
+import RegionFilter from "./RegionMap/RegionFilter";
+import DateFilter from "./DateFilter";
+import ClassFilter from "./ClassFilter";
+import FlagFilter from "./FlagFilter";
+import TagsFilter from "./TagsFilter";
+import TypeFilter from "./TypeFilter";
+
+const FilterTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	return (
+		<>
+			<div id="example-collapse-text">
+				<Card>
+					<Card.Body>
+						<Form>
+							<RegionFilter isOpen={isOpen} />
+							<DateFilter />
+							<ClassFilter />
+							<TagsFilter />
+							<FlagFilter />
+							<TypeFilter />
+						</Form>
+					</Card.Body>
+				</Card>
+			</div>
+		</>
+	);
+};
+
+export default FilterTab;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/FlagFilter.tsx
+----------------------
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const FlagFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="flagFilter">
+			<Form.Label>Flag</Form.Label>
+			<Form.Check type="checkbox" label="Ativar flag" />
+		</Form.Group>
+	);
+};
+
+export default FlagFilter;
+
+========================================================
+Pasta: components/Body/Tabs/FilterTab/RegionMap
+----------------------
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/MapView.tsx
+----------------------
+import React, { useEffect } from "react";
+import {
+	MapContainer,
+	TileLayer,
+	Polygon,
+	Marker,
+	useMap
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+const MapView: React.FC<{
+	center: [number, number];
+	zoom: number;
+	selectedRegion: any[];
+	isPolygon: boolean;
+	isOpen: boolean;
+}> = ({ center, zoom, selectedRegion, isPolygon, isOpen }) => {
+	const MapEvents = () => {
+		const map = useMap();
+
+		useEffect(() => {
+			map.invalidateSize();
+		}, [isOpen]);
+
+		map.setView(center, zoom);
+		return null;
+	};
+
+	return (
+		<div style={{ height: "400px", width: "100%" }}>
+			<MapContainer
+				center={center}
+				zoom={zoom}
+				style={{ height: "100%", width: "100%" }}
+			>
+				<TileLayer
+					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+					attribution="&copy; OpenStreetMap contributors"
+				/>
+				{isPolygon ? (
+					<Polygon positions={selectedRegion} />
+				) : (
+					<Marker
+						position={center}
+						icon={L.icon({
+							iconUrl:
+								"https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+							iconSize: [25, 41],
+							iconAnchor: [12, 41]
+						})}
+					/>
+				)}
+				<MapEvents />
+			</MapContainer>
+		</div>
+	);
+};
+
+export default MapView;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/RegionFilter.tsx
+----------------------
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card } from "react-bootstrap";
+import axios from "axios";
+import MapView from "./MapView";
+import SearchBar from "./SearchBar";
+import ResultList from "./ResultList";
+
+const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	const [selectedRegion, setSelectedRegion] = useState<any[]>([]);
+	const [center, setCenter] = useState<[number, number]>([0, 0]);
+	const [zoom, setZoom] = useState<number>(2);
+	const [isPolygon, setIsPolygon] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(false);
+	const [foundPlaces, setFoundPlaces] = useState<any[]>([]);
+	const [selectedPlace, setSelectedPlace] = useState<any>(null);
+
+	useEffect(() => {
+		if (isOpen) {
+			setTimeout(() => {
+				window.dispatchEvent(new Event("resize"));
+			}, 100);
+		}
+	}, [isOpen]);
+
+	const handleSearch = async (placeName: string) => {
+		if (!placeName) return;
+
+		setLoading(true);
+		try {
+			const response = await axios.get(
+				`https://nominatim.openstreetmap.org/search`,
+				{
+					params: {
+						q: placeName,
+						format: "json",
+						polygon_geojson: 1
+					}
+				}
+			);
+
+			if (response.data.length > 0) {
+				setFoundPlaces(response.data);
+			} else {
+				alert("Local não encontrado");
+				setFoundPlaces([]);
+			}
+		} catch (error) {
+			console.error("Erro ao buscar o local:", error);
+			alert("Erro ao buscar o local");
+			setFoundPlaces([]);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const selectPlace = (place: any) => {
+		setSelectedPlace(place);
+		if (place.geojson && place.geojson.type === "Polygon") {
+			const coordinates = place.geojson.coordinates[0].map(
+				(coord: [number, number]) => ({
+					lat: coord[1],
+					lng: coord[0]
+				})
+			);
+			setSelectedRegion(coordinates);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(10);
+			setIsPolygon(true);
+		} else {
+			setSelectedRegion([]);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(15);
+			setIsPolygon(false);
+		}
+	};
+
+	return (
+		<Card className="mb-3">
+			<Card.Body>
+				<Row>
+					<Col md={8}>
+						<MapView
+							center={center}
+							zoom={zoom}
+							selectedRegion={selectedRegion}
+							isPolygon={isPolygon}
+							isOpen={isOpen}
+						/>
+					</Col>
+					<Col md={4}>
+						<SearchBar onSearch={handleSearch} loading={loading} />
+						<ResultList
+							places={foundPlaces}
+							selectedPlace={selectedPlace}
+							onSelectPlace={selectPlace}
+						/>
+					</Col>
+				</Row>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default RegionFilter;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultItem.tsx
+----------------------
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+
+interface ResultItemProps {
+	place: any;
+	isSelected: boolean;
+	onSelect: () => void;
+}
+
+const ResultItem: React.FC<ResultItemProps> = ({
+	place,
+	isSelected,
+	onSelect
+}) => {
+	return (
+		<Card className="mb-2">
+			<Card.Body>
+				<Card.Title>{place.display_name.split(",")[0]}</Card.Title>
+				<Card.Text>{place.display_name}</Card.Text>
+				<Button
+					variant={isSelected ? "success" : "outline-primary"}
+					onClick={onSelect}
+				>
+					{isSelected ? "Selecionado" : "Selecionar"}
+				</Button>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultItem;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultList.tsx
+----------------------
+import React from "react";
+import ResultItem from "./ResultItem";
+import { Card } from "react-bootstrap";
+
+interface ResultListProps {
+	places: any[];
+	selectedPlace: any;
+	onSelectPlace: (place: any) => void;
+}
+
+const ResultList: React.FC<ResultListProps> = ({
+	places,
+	selectedPlace,
+	onSelectPlace
+}) => {
+	return (
+		<Card style={{ maxHeight: "400px", overflowY: "auto" }}>
+			<Card.Body>
+				{places.length === 0 ? (
+					<div className="text-center text-muted">
+						Nenhum resultado encontrado. Digite o nome de um lugar
+						para buscar.
+					</div>
+				) : (
+					places.map((place, index) => (
+						<ResultItem
+							key={index}
+							place={place}
+							isSelected={
+								selectedPlace &&
+								selectedPlace.place_id === place.place_id
+							}
+							onSelect={() => onSelectPlace(place)}
+						/>
+					))
+				)}
+				{selectedPlace === null && places.length > 0 && (
+					<div className="text-center text-muted mt-2">
+						Caso não tenha selecionado um lugar, as imagens de todos
+						os lugares aparecerão aqui.
+					</div>
+				)}
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultList;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/SearchBar.tsx
+----------------------
+import React, { useState } from "react";
+import { Form, Button, Spinner } from "react-bootstrap";
+
+interface SearchBarProps {
+	onSearch: (placeName: string) => void;
+	loading: boolean;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
+	const [placeName, setPlaceName] = useState<string>("");
+
+	const handleSearch = () => {
+		onSearch(placeName);
+	};
+
+	return (
+		<Form.Group controlId="regionSearchBar">
+			<Form.Control
+				type="text"
+				placeholder="Nome do lugar (País, Estado, etc.)"
+				value={placeName}
+				onChange={(e) => setPlaceName(e.target.value)}
+				className="mb-2"
+			/>
+			<Button
+				variant="primary"
+				onClick={handleSearch}
+				className="mb-2"
+				disabled={loading}
+			>
+				{loading ? <Spinner animation="border" size="sm" /> : "Buscar"}
+			</Button>
+		</Form.Group>
+	);
+};
+
+export default SearchBar;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/TagsFilter.tsx
+----------------------
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const tagOptions = [
+	{ value: "Tag1", label: "Tag 1" },
+	{ value: "Tag2", label: "Tag 2" },
+	{ value: "Tag3", label: "Tag 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const TagsFilter: React.FC = () => {
+	const [selectedTags, setSelectedTags] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="tagsFilter">
+			<Form.Label>Tags Especiais</Form.Label>
+			<Select
+				isMulti
+				options={tagOptions}
+				value={selectedTags}
+				onChange={(newValue: any, actionMeta: any) =>
+					setSelectedTags(newValue as any[])
+				}
+				placeholder="Digite as tags"
+			/>
+		</Form.Group>
+	);
+};
+
+export default TagsFilter;
+
+========================================================
+Arquivo: components/Body/Tabs/FilterTab/TypeFilter.tsx
+----------------------
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const TypeFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="typeFilter">
+			<Form.Label>Tipo</Form.Label>
+			<Form.Control type="text" placeholder="Digite o tipo" />
+		</Form.Group>
+	);
+};
+
+export default TypeFilter;
+
+========================================================
+Pasta: components/Body/Tabs/MainTab
+----------------------
+Arquivo: components/Body/Tabs/MainTab/ButtonBar.tsx
+----------------------
+import React from "react";
+import { Button } from "react-bootstrap";
+
+const ButtonBar: React.FC = () => {
+	return (
+		<div className="button-bar d-flex justify-content-center">
+			<Button variant="primary">Button 1</Button>
+			<Button variant="secondary">Button 2</Button>
+			<Button variant="success">Button 3</Button>
+			{/* Add more buttons as needed */}
+		</div>
+	);
+};
+
+export default ButtonBar;
+
+========================================================
+Pasta: components/Body/Tabs/MainTab/ClassToggleList
+----------------------
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassCard.tsx
+----------------------
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+import { FaStar, FaRegStar, FaCheckCircle, FaCircle } from "react-icons/fa";
+
+interface ClassCardProps {
+	cls: { id: number; label: string };
+	isFavorite: boolean;
+	isSelected: boolean;
+	onFavoriteToggle: (id: number) => void;
+	onSelectToggle: (id: number) => void;
+}
+
+const ClassCard: React.FC<ClassCardProps> = ({
+	cls,
+	isFavorite,
+	isSelected,
+	onFavoriteToggle,
+	onSelectToggle
+}) => (
+	<Card key={cls.id} className="mb-2 w-100">
+		<Card.Body className="d-flex justify-content-between align-items-center">
+			<div className="d-flex flex-column">
+				<span>{cls.label}</span>
+				<small>ID: {cls.id}</small>
+			</div>
+			<div className="d-flex align-items-center">
+				<Button
+					variant="link"
+					onClick={(e) => {
+						e.stopPropagation();
+						onFavoriteToggle(cls.id);
+					}}
+				>
+					{isFavorite ? <FaStar color="gold" /> : <FaRegStar />}
+				</Button>
+				<Button
+					variant="link"
+					onClick={(e) => {
+						e.stopPropagation();
+						onSelectToggle(cls.id);
+					}}
+				>
+					{isSelected ? (
+						<FaCheckCircle color="green" />
+					) : (
+						<FaCircle color="gray" />
+					)}
+				</Button>
+			</div>
+		</Card.Body>
+	</Card>
+);
+
+export default ClassCard;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassToggleList.tsx
+----------------------
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import ClassCard from "./ClassCard";
+
+const classList = [
+	{ id: 0, label: "Lombada" },
+	{ id: 1, label: "Sarjetão" },
+	{ id: 2, label: "Buraco" },
+	{ id: 3, label: "Tampa de PV Adequada" },
+	{ id: 4, label: "Tampa de PV com Defeito" },
+	{ id: 5, label: "Recomposição Asfáltica" },
+	{ id: 6, label: "Fissura Couro de Jacaré" },
+	{ id: 7, label: "Fissura Transversal" },
+	{ id: 8, label: "Fissura Longitudinal" },
+	{ id: 9, label: "Boca de Lobo" },
+	{ id: 10, label: "Sarjeta/Drenagem com Defeito" },
+	{ id: 11, label: "Placa de Regulamentação" },
+	{ id: 12, label: "Placa de Advertência" },
+	{ id: 13, label: "Placa De Indicação" },
+	{ id: 14, label: "Placa Educativa" },
+	{ id: 15, label: "Placa Auxiliar" },
+	{ id: 16, label: "Lixeira" },
+	{ id: 17, label: "Hidrante" },
+	{ id: 18, label: "Paralelepípedo" },
+	{ id: 19, label: "Boca de Leão" },
+	{ id: 20, label: "Sombra" },
+	{ id: 21, label: "Tachão" },
+	{ id: 22, label: "N/A" },
+	{ id: 23, label: "Sinalização Horizontal" },
+	{ id: 24, label: "Placa" },
+	{ id: 25, label: "Fissura" },
+	{ id: 26, label: "Tampa de PV" },
+	{ id: 27, label: "Boca de Lobo Adequada" },
+	{ id: 28, label: "Boca de Lobo Inadequada" },
+	{ id: 29, label: "Sarjetão Adequado" },
+	{ id: 30, label: "Sarjetão Inadequado" },
+	{ id: 31, label: "Buraco Profundo" },
+	{ id: 32, label: "Buraco Superficial" },
+	{ id: 33, label: "Entulho" },
+	{ id: 34, label: "Faixa de Pedestre" },
+	{ id: 35, label: "Poste" },
+	{ id: 36, label: "Lixeira Adequada" },
+	{ id: 37, label: "Lixeira Inadequada" },
+	{ id: 38, label: "Lixeira Transbordando" },
+	{ id: 39, label: "Galhardete" },
+	{ id: 40, label: "Saco de Varrição" },
+	{ id: 41, label: "Sarjeta" },
+	{ id: 42, label: "Tacha Refletiva" },
+	{ id: 43, label: "Trinca Selada" },
+	{ id: 44, label: "Defensa Metálica" },
+	{ id: 45, label: "Mato Baixo" },
+	{ id: 46, label: "Mato Alto" },
+	{ id: 49, label: "Grama na Sarjeta" },
+	{ id: 50, label: "Árvore" },
+	{ id: 51, label: "Rua" },
+	{ id: 52, label: "Calçada" },
+	{ id: 53, label: "Canteiro" },
+	{ id: 54, label: "Partes do Carro" },
+	{ id: 55, label: "Reflexo" },
+	{ id: 56, label: "Fundo" },
+	{ id: 57, label: "Background" },
+	{ id: 80, label: "Marco Vertical" },
+	{ id: 81, label: "Válvula Gás" },
+	{ id: 82, label: "Poste ERP" },
+	{ id: 999002, label: "Árvores" },
+	{ id: 999003, label: "Excesso de fio" }
+];
+
+const ClassToggleList: React.FC = () => {
+	const [selectedClass, setSelectedClass] = useState<number | null>(null);
+	const [favoriteClasses, setFavoriteClasses] = useState<number[]>([]);
+	const [searchTerm, setSearchTerm] = useState<string>("");
+
+	const handleSelectClass = (id: number) => {
+		setSelectedClass(id);
+	};
+
+	const toggleFavorite = (id: number) => {
+		setFavoriteClasses((prev) =>
+			prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
+		);
+	};
+
+	const filteredClasses = classList.filter(
+		(cls) =>
+			cls.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			cls.id.toString().includes(searchTerm)
+	);
+
+	return (
+		<div
+			style={{
+				height: "100%",
+				overflowY: "auto",
+				padding: "1rem",
+				backgroundColor: "#f8f9fa"
+			}}
+		>
+			<Form.Control
+				type="text"
+				placeholder="Buscar classes..."
+				value={searchTerm}
+				onChange={(e) => setSearchTerm(e.target.value)}
+				className="mb-2"
+			/>
+			<h5>Favoritos</h5>
+			{favoriteClasses.length === 0 && <div>Nenhum favorito</div>}
+			<div className="mb-3">
+				{favoriteClasses.map((favId) => {
+					const cls = classList.find((c) => c.id === favId);
+					if (!cls) return null;
+					return (
+						<ClassCard
+							key={cls.id}
+							cls={cls}
+							isFavorite={true}
+							isSelected={selectedClass === cls.id}
+							onFavoriteToggle={toggleFavorite}
+							onSelectToggle={handleSelectClass}
+						/>
+					);
+				})}
+			</div>
+
+			<h5>Prováveis</h5>
+			<div>Placeholder para Prováveis</div>
+
+			<h5>Todas as Classes</h5>
+			<div>
+				{filteredClasses.map((cls) => (
+					<ClassCard
+						key={cls.id}
+						cls={cls}
+						isFavorite={favoriteClasses.includes(cls.id)}
+						isSelected={selectedClass === cls.id}
+						onFavoriteToggle={toggleFavorite}
+						onSelectToggle={handleSelectClass}
+					/>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default ClassToggleList;
+
+========================================================
+Pasta: components/Body/Tabs/MainTab/ImageFrame
+----------------------
+Pasta: components/Body/Tabs/MainTab/ImageFrame/Geometry
+----------------------
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/BoundingBox.tsx
+----------------------
+// import React from "react";
+// import { Rect, Circle } from "react-konva";
+// import { Point } from "hooks/types";
+
+// const BoundingBox: React.FC<{ startPoint: Point; endPoint: Point }> = ({ startPoint, endPoint }) => {
+//   const rectProps = {
+//     x: startPoint.x,
+//     y: startPoint.y,
+//     width: endPoint.x - startPoint.x,
+//     height: endPoint.y - startPoint.y
+//   };
+
+//   return (
+//     <>
+//       <Rect
+//         {...rectProps}
+//         stroke="blue"
+//         strokeWidth={2}
+//       />
+//       <Circle
+//         x={rectProps.x}
+//         y={rectProps.y}
+//         radius={5}
+//         fill="blue"
+//       />
+//       <Circle
+//         x={rectProps.x + rectProps.width}
+//         y={rectProps.y + rectProps.height}
+//         radius={5}
+//         fill="red"
+//       />
+//     </>
+//   );
+// };
+
+// export default BoundingBox;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/Geometry.tsx
+----------------------
+import React from "react";
+import { Line, Rect } from "react-konva";
+import { GeometryItem } from "contexts/DrawingContext";
+
+interface GeometryProps {
+	item: GeometryItem;
+	index: number;
+}
+
+const Geometry: React.FC<GeometryProps> = ({ item, index }) => {
+	switch (item.type) {
+		case "polyline":
+			return (
+				<Line
+					points={item.points.flatMap((point) => [point.x, point.y])}
+					stroke="black"
+					strokeWidth={2}
+					lineCap="round"
+					lineJoin="round"
+				/>
+			);
+		case "boundingBox":
+			const { startPoint, endPoint } = item;
+			const width = endPoint.x - startPoint.x;
+			const height = endPoint.y - startPoint.y;
+			return (
+				<Rect
+					x={startPoint.x}
+					y={startPoint.y}
+					width={width}
+					height={height}
+					stroke="blue"
+					strokeWidth={2}
+					dash={[4, 4]}
+				/>
+			);
+		default:
+			return null;
+	}
+};
+
+export default Geometry;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/GeometryPreview.tsx
+----------------------
+import React from "react";
+import { Line, Rect } from "react-konva";
+import {
+	DrawingState,
+	PreviewBoundingBox,
+	PreviewPolyline
+} from "contexts/DrawingContext";
+
+interface GeometryPreviewProps {
+	previewItem: DrawingState["previewItem"];
+}
+
+const GeometryPreview: React.FC<{
+	previewItem: PreviewBoundingBox | PreviewPolyline;
+}> = ({ previewItem }) => {
+	if (!previewItem) return null;
+
+	switch (previewItem.type) {
+		case "polyline":
+			const points = previewItem.currentMovingPoint
+				? [...previewItem.points, previewItem.currentMovingPoint]
+				: previewItem.points;
+			return (
+				<Line
+					points={points.flatMap((point) => [point.x, point.y])}
+					stroke="black"
+					strokeWidth={2}
+					lineCap="round"
+					lineJoin="round"
+					dash={[10, 5]}
+				/>
+			);
+		case "boundingBox":
+			const { startPoint, endPoint } = previewItem;
+			const width = endPoint.x - startPoint.x;
+			const height = endPoint.y - startPoint.y;
+			return (
+				<Rect
+					x={startPoint.x}
+					y={startPoint.y}
+					width={width}
+					height={height}
+					stroke="blue"
+					strokeWidth={2}
+					dash={[10, 5]}
+				/>
+			);
+		default:
+			return null;
+	}
+};
+
+export default GeometryPreview;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/PolyLine.tsx
+----------------------
+// import React, { useState } from "react";
+// import { Line, Circle } from "react-konva";
+// import { Point } from "../../../../hooks/types";
+// import { calculateMidPoint, handleInsertPoint } from "@src/hooks/helpers";
+
+// const PolyLine: React.FC<{ points: Point[] }> = ({ points }) => {
+//   const [polyPoints, setPolyPoints] = useState<Point[]>(points);
+
+//   const handleDragMove = (e: any, index: number) => {
+//     const newPoints = [...polyPoints];
+//     newPoints[index] = { x: e.target.x(), y: e.target.y() };
+//     setPolyPoints(newPoints);
+//   };
+
+//   return (
+//     <>
+//       <Line
+//         points={polyPoints.flatMap((p) => [p.x, p.y])}
+//         stroke="red"
+//         strokeWidth={2}
+//       />
+//       {polyPoints.map((point, index) => (
+//         <Circle
+//           key={index}
+//           x={point.x}
+//           y={point.y}
+//           radius={5}
+//           fill="blue"
+//           draggable
+//           onDragMove={(e) => handleDragMove(e, index)}
+//         />
+//       ))}
+//       {polyPoints.map((point, index) => {
+//         if (index === polyPoints.length - 1) return null;
+//         const midPoint = calculateMidPoint(point, polyPoints[index + 1]);
+//         return (
+//           <Circle
+//             key={`mid-${index}`}
+//             x={midPoint.x}
+//             y={midPoint.y}
+//             radius={5}
+//             fill="green"
+//             draggable
+//             onDragEnd={(e) => setPolyPoints(handleInsertPoint(polyPoints, index + 1, { x: e.target.x(), y: e.target.y() }))}
+//           />
+//         );
+//       })}
+//     </>
+//   );
+// };
+
+// export default PolyLine;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/ImageFrame.tsx
+----------------------
+import React, { useRef, useEffect, useContext, useState } from "react";
+import { Stage, Layer, Rect } from "react-konva";
+import Geometry from "./Geometry/Geometry";
+import { DrawingContext, GeometryItem } from "contexts/DrawingContext";
+import { ToolContext } from "contexts/ToolContext";
+import GeometryPreview from "./Geometry/GeometryPreview";
+
+interface ImageFrameProps {
+	isOpen: boolean;
+}
+
+const ImageFrame: React.FC<ImageFrameProps> = ({ isOpen }) => {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const stageRef = useRef<any>(null);
+
+	const drawingContext = useContext(DrawingContext);
+	const toolContext = useContext(ToolContext);
+
+	if (!drawingContext || !toolContext) {
+		throw new Error(
+			"DrawingContext and ToolContext must be used within seus respectivos providers"
+		);
+	}
+
+	const { state: drawingState, dispatch: drawingDispatch } = drawingContext;
+	const { state: toolState } = toolContext;
+
+	const [dimensions, setDimensions] = useState({ width: 100, height: 100 });
+
+	//add a window size listener and update the dimensions
+	useEffect(() => {
+		const handleResize = () => {
+			if (containerRef.current) {
+				const { width, height } =
+					containerRef.current.getBoundingClientRect();
+				setDimensions({ width, height });
+			}
+		};
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	useEffect(() => {
+		if (containerRef.current) {
+			const { width, height } =
+				containerRef.current.getBoundingClientRect();
+			setDimensions({ width, height });
+		}
+	}, [isOpen]);
+
+	useEffect(() => {
+		if (stageRef.current) {
+			stageRef.current.width(dimensions.width);
+			stageRef.current.height(dimensions.height);
+			stageRef.current.batchDraw();
+		}
+	}, [dimensions]);
+
+	const handlePointerDown = () => {
+		console.log("handlePointerDown");
+		if (!toolState.selectedTool) return;
+		const stage = stageRef.current;
+		const point = stage.getPointerPosition();
+		drawingDispatch({
+			type: "POINTER_DOWN",
+			point,
+			selectedTool: toolState.selectedTool
+		});
+	};
+
+	const handlePointerDrag = () => {
+		console.log("handlePointerDrag");
+		if (!drawingState.isDrawing) return;
+		const stage = stageRef.current;
+		const point = stage.getPointerPosition();
+		drawingDispatch({ type: "POINTER_DRAG", point });
+	};
+
+	const handlePointerUp = () => {
+		console.log("handlePointerUp");
+		if (!drawingState.isDrawing) return;
+		const stage = stageRef.current;
+		const point = stage.getPointerPosition();
+		drawingDispatch({ type: "POINTER_UP", point });
+	};
+
+	return (
+		<div
+			ref={containerRef}
+			style={{
+				width: "100%",
+				height: "100%",
+				backgroundColor: "#5c949f"
+			}}
+		>
+			<Stage
+				width={dimensions.width}
+				height={dimensions.height}
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerDrag}
+				onPointerUp={handlePointerUp}
+				ref={stageRef}
+			>
+				<Layer>
+					<Rect
+						x={0}
+						y={0}
+						width={dimensions.width}
+						height={dimensions.height}
+						fill="lightgray"
+					/>
+					{drawingState.items.map(
+						(item: GeometryItem, index: number) => (
+							<Geometry item={item} index={index} key={index} />
+						)
+					)}
+					{drawingState.previewItem && (
+						<GeometryPreview
+							previewItem={drawingState.previewItem}
+						/>
+					)}
+				</Layer>
+			</Stage>
+		</div>
+	);
+};
+
+export default ImageFrame;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/index.tsx
+----------------------
+export { default } from "./ImageFrame";
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/MainTab.tsx
+----------------------
+import React from "react";
+import { ToolProvider } from "contexts/ToolContext";
+import { DrawingProvider } from "contexts/DrawingContext";
+// import { InteractionStateProvider } from 'context/InteractionStateContext';
+import Toolbar from "./Toolbar";
+import { Col, Container, Row } from "react-bootstrap";
+import ButtonBar from "./ButtonBar";
+import ClassToggleList from "./ClassToggleList/ClassToggleList";
+import ImageFrame from "./ImageFrame/ImageFrame";
+
+const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	return (
+		<ToolProvider>
+			<DrawingProvider>
+				{/* <InteractionStateProvider> */}
+				<Toolbar />
+				<Container fluid style={{ padding: 0 }}>
+					<Row
+						className="d-flex flex-column flex-lg-row"
+						style={{ height: "75vh" }}
+					>
+						<Col lg={9} md={12} style={{ overflowY: "auto" }}>
+							<div style={{ height: "500px" }}>
+								<ImageFrame isOpen={isOpen} />
+							</div>
+						</Col>
+						<Col lg={3} md={12} style={{ overflowY: "auto" }}>
+							<div style={{ height: "500px" }}>
+								<ClassToggleList />
+							</div>
+						</Col>
+					</Row>
+				</Container>
+				<ButtonBar />
+				{/* </InteractionStateProvider> */}
+			</DrawingProvider>
+		</ToolProvider>
+	);
+};
+
+export default MainTab;
+
+========================================================
+Arquivo: components/Body/Tabs/MainTab/Toolbar.tsx
+----------------------
+import React, { useContext } from "react";
+import { ToolContext } from "contexts/ToolContext";
+import { DrawingContext } from "contexts/DrawingContext";
+import {
+	ButtonToolbar,
+	ToggleButton,
+	ToggleButtonGroup
+} from "react-bootstrap";
+
+interface ToolbarProps {
+	onToolChange?: (value: string) => void;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({ onToolChange }) => {
+	const toolContext = useContext(ToolContext);
+	const drawingContext = useContext(DrawingContext);
+
+	if (!toolContext || !drawingContext) {
+		throw new Error(
+			"ToolContext and DrawingContext must be used within their respective providers"
+		);
+	}
+
+	const { state: toolState, dispatch: toolDispatch } = toolContext;
+	const { state: drawingState } = drawingContext;
+
+	const handleToolChange = (value: string) => {
+		toolDispatch({ type: "SET_TOOL", payload: value });
+		if (onToolChange) {
+			onToolChange(value);
+		}
+	};
+
+	return (
+		<ButtonToolbar>
+			<ToggleButtonGroup
+				type="radio"
+				name="toolsGroup1"
+				value={toolState.selectedTool}
+				onChange={(value: string) => handleToolChange(value)}
+				className="mb-2"
+			>
+				<ToggleButton
+					variant="outline-secondary"
+					value="createPolyLine"
+					id="createPolyLine"
+					disabled={drawingState.isDrawing}
+				>
+					{drawingState.isDrawing &&
+					toolState.selectedTool === "createPolyLine"
+						? "Criando Poly Line"
+						: "Criar Poly Line"}
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="createBoundingBox"
+					id="createBoundingBox"
+					disabled={drawingState.isDrawing}
+				>
+					{drawingState.isDrawing &&
+					toolState.selectedTool === "createBoundingBox"
+						? "Criando Bounding Box"
+						: "Criar Bounding Box"}
+				</ToggleButton>
+			</ToggleButtonGroup>
+			<ToggleButtonGroup
+				type="radio"
+				name="toolsGroup2"
+				value={toolState.selectedTool}
+				onChange={(value: string) => handleToolChange(value)}
+				className="mb-2"
+			>
+				<ToggleButton
+					variant="outline-secondary"
+					value="select"
+					id="select"
+					disabled={drawingState.isDrawing}
+				>
+					Selecionar
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="resize"
+					id="resize"
+					disabled={drawingState.isDrawing}
+				>
+					Redimensionar
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="move"
+					id="move"
+					disabled={drawingState.isDrawing}
+				>
+					Mover
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="delete"
+					id="delete"
+					disabled={drawingState.isDrawing}
+				>
+					Deletar
+				</ToggleButton>
+			</ToggleButtonGroup>
+		</ButtonToolbar>
+	);
+};
+
+export default Toolbar;
+
+========================================================
+Pasta: components/Header
+----------------------
+Arquivo: components/Header/Header.tsx
+----------------------
+import React, { useState } from "react";
+import NavbarComponent from "./Navbar";
+import Sidebar from "./Sidebar";
+
+const Header: React.FC = () => {
+	const [show, setShow] = useState(false);
+
+	const handleClose = () => setShow(false);
+	const handleShow = () => setShow(true);
+
+	return (
+		<header>
+			<NavbarComponent handleShow={handleShow} />
+			<Sidebar show={show} handleClose={handleClose} />
+		</header>
+	);
+};
+
+export default Header;
+
+========================================================
+Arquivo: components/Header/Navbar.tsx
+----------------------
+// src/components/NavbarComponent.tsx
+
+import React from "react";
+import { Navbar, Nav, Button, Badge } from "react-bootstrap";
+import { FaBars, FaExclamationCircle, FaBell, FaSignOutAlt } from "react-icons/fa"; // Importa o ícone de logout
+import { logoStyle, navTextStyle, buttonStyle, badgeStyle } from "./styles";
+import { useAuth } from '../../contexts/AuthContext'; // Usa o hook de autenticação
+import { useNavigate } from 'react-router-dom';
+
+interface NavbarProps {
+	handleShow: () => void;
+}
+
+const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
+	const { logout } = useAuth(); // Usa o hook useAuth para obter a função logout
+	const navigate = useNavigate();
+
+	// Função de logout
+	const handleLogout = () => {
+		logout(); // Executa o logout do contexto de autenticação
+		navigate('/sign-in'); // Redireciona para a página de login
+	};
+
+	return (
+		<Navbar bg="dark" variant="dark" className="px-3">
+			<Nav>
+				<FaBars
+					style={{
+						color: "green",
+						fontSize: "1.5em",
+						cursor: "pointer"
+					}}
+					onClick={handleShow}
+				/>
+			</Nav>
+			<img
+				src="/icons/LOGO-1920w.webp"
+				alt="Logo da Empresa"
+				style={logoStyle}
+			/>
+			<Navbar.Text className="mx-auto" style={navTextStyle}>
+				Sistema Geral de Classificação (SGC)
+			</Navbar.Text>
+			<Nav className="ml-auto d-flex align-items-center gap-2">
+				<Button variant="success" className="mr-5">
+					Metas
+				</Button>
+				<Button variant="success" className="mr-5" style={buttonStyle}>
+					<FaExclamationCircle
+						style={{ color: "white", fontSize: "1.2em" }}
+					/>
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						3
+					</Badge>
+				</Button>
+				<Button variant="warning" className="mr-2" style={buttonStyle}>
+					<FaBell style={{ color: "white", fontSize: "1.2em" }} />
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						10
+					</Badge>
+				</Button>
+
+				{/* Botão de Logout */}
+				<Button variant="danger" className="ml-3" onClick={handleLogout}>
+					<FaSignOutAlt style={{ color: "white", fontSize: "1.2em" }} />
+				</Button>
+			</Nav>
+		</Navbar>
+	);
+};
+
+export default NavbarComponent;
+
+========================================================
+Arquivo: components/Header/Sidebar.tsx
+----------------------
+// src/components/Sidebar.tsx
+
+import React from 'react';
+import { Offcanvas, Nav } from 'react-bootstrap';
+import routes from '../../config/routes'; // Importa as rotas
+import { useAuth } from '../../contexts/AuthContext'; // Usa o hook de autenticação
+import { useAllowedRoles } from 'contexts/AllowedRolesContext';
+
+interface SidebarProps {
+  show: boolean;
+  handleClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ show, handleClose }) => {
+  const { user } = useAuth(); // Obtém o usuário autenticado do contexto
+  const { allowedRoles } = useAllowedRoles(); // Obtém os papéis permitidos do contexto
+
+  if (!user) {
+    return null; // Se não houver usuário autenticado, não renderiza a sidebar
+  }
+  console.log(user.role);
+  return (
+    <Offcanvas show={show} onHide={handleClose}>
+      <Offcanvas.Header closeButton>
+        <Offcanvas.Title>Sidebar</Offcanvas.Title>
+      </Offcanvas.Header>
+      <Offcanvas.Body className="p-0">
+        <Nav className="flex-column bg-dark h-100 p-3">
+          {/* Exibe apenas as rotas que o usuário tem permissão para acessar */}
+          {routes
+            .filter(route => route.showInSidebar && route.roles.includes(user.role))
+            .map((route, idx) => (
+              <Nav.Link href={route.path} className="text-white" key={idx}>
+                {route.name}
+              </Nav.Link>
+            ))}
+        </Nav>
+      </Offcanvas.Body>
+    </Offcanvas>
+  );
+};
+
+export default Sidebar;
+
+========================================================
+Arquivo: components/Header/styles.ts
+----------------------
+import { CSSProperties } from "react";
+
+export const logoStyle: CSSProperties = {
+	height: "50px",
+	marginRight: "auto",
+	marginLeft: "10px"
+};
+
+export const navTextStyle: CSSProperties = {
+	color: "white",
+	fontSize: "1.5em"
+};
+
+export const buttonStyle: CSSProperties = {
+	position: "relative"
+};
+
+export const badgeStyle: CSSProperties = {
+	position: "absolute",
+	top: "-5px",
+	right: "-5px"
+};
+
+========================================================
+Pasta: components/layouts
+----------------------
+Arquivo: components/layouts/PageLayout.tsx
+----------------------
+// src/layouts/PageLayout.tsx
+
+import React, { PropsWithChildren } from 'react';
+import Header from '../Header/Header';  // Importa o seu componente Header
+
+const PageLayout: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <div>
+      <Header/>
+      <main>{children}</main> {/* Renderiza o conteúdo das rotas */}
+      <footer>/* Coloque seu Footer aqui, se necessário */</footer>
+    </div>
+  );
+};
+
+export default PageLayout;
+
+
+========================================================
+Pasta: components/pages
+----------------------
+Arquivo: components/pages/AdminRegisterPage.tsx
+----------------------
+// src/components/AdminRegisterUserPage.tsx
+
+import React, { useState } from 'react';
+import { Form, Button, Spinner, Container } from 'react-bootstrap';
+import { useMutation } from 'react-query';
+import axios, { AxiosError } from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+interface RegisterFormValues {
+  username: string;
+  password: string;
+  role: 'user' | 'admin'; // O papel do usuário, pode ser 'user' ou 'admin'
+}
+
+interface RegisterResponse {
+  message: string;
+}
+
+const registerUser = async (credentials: RegisterFormValues): Promise<RegisterResponse> => {
+  const response = await axios.post('http://localhost:3000/api/register/', credentials);
+  return response.data; // Supondo que o servidor retorna { message: '...' }
+};
+
+const AdminRegisterPage: React.FC = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'admin'>('user');
+  const navigate = useNavigate();
+
+  const mutation = useMutation(registerUser, {
+    onSuccess: (data) => {
+      alert(data.message); // Mostra mensagem de sucesso
+      navigate('/admin'); // Redireciona para a página de administração
+    },
+    onError: (error: AxiosError) => {
+      if (error.response && error.response.data) {
+        const serverError = error.response.data as RegisterResponse;
+        alert(serverError.message); // Mostra a mensagem de erro específica
+      } else {
+        alert('Ocorreu um erro ao tentar registrar o usuário.');
+      }
+    },
+  });
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate({ username, password, role });
+  };
+
+  return (
+    <Container className="d-flex justify-content-center align-items-center vh-100">
+      <Form onSubmit={handleSubmit} className="w-50">
+        <h3 className="text-center mb-4">Registrar Novo Usuário</h3>
+        <Form.Group controlId="formUsername">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formPassword" className="mt-3">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formRole" className="mt-3">
+          <Form.Label>Role</Form.Label>
+          <Form.Select value={role} onChange={(e) => setRole(e.target.value as 'user' | 'admin')}>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </Form.Select>
+        </Form.Group>
+
+        <Button variant="primary" type="submit" className="w-100 mt-4" disabled={mutation.isLoading}>
+          {mutation.isLoading ? (
+            <Spinner animation="border" size="sm" />
+          ) : (
+            'Registrar Usuário'
+          )}
+        </Button>
+      </Form>
+    </Container>
+  );
+};
+
+export default AdminRegisterPage;
+
+========================================================
+Arquivo: components/pages/ClassificationPage.tsx
+----------------------
+import React from 'react';
+import Body from '../Body/Body';
+
+const ClassificationPage: React.FC = () => {
+    return (
+        <>
+            <Body />
+        </>
+    );
+};
+
+export default ClassificationPage;
+========================================================
+Arquivo: components/pages/HomePage.tsx
+----------------------
+// src/components/HomePage.tsx
+
+import React from 'react';
+import { Container, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+
+const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    navigate('/sign-in');
+  };
+
+  return (
+    <Container className="d-flex flex-column justify-content-center align-items-center vh-100">
+      <h1 className="mb-4">Bem-vindo ao Sistema de Classificação de Imagens</h1>
+      <p className="lead mb-5">Acesse sua conta para começar a classificar.</p>
+      <Button variant="primary" size="lg" onClick={handleLogin}>
+        Fazer Login
+      </Button>
+    </Container>
+  );
+};
+
+export default HomePage;
+
+========================================================
+Arquivo: components/pages/ImageUploadPage.tsx
+----------------------
+import React, { useState } from 'react';
+import { Container, Button, Row, Col, ListGroup, Image } from 'react-bootstrap';
+import { useDropzone } from 'react-dropzone';
+import { FaFileUpload, FaTrash, FaCloudUploadAlt } from 'react-icons/fa';
+import axios from 'axios';
+
+interface ImageData {
+  file: File;
+  preview: string;
+  size: number;
+  dimensions: { width: number; height: number };
+}
+
+const ImageUploadPage: React.FC = () => {
+  const [files, setFiles] = useState<ImageData[]>([]);
+
+  const onDrop = (acceptedFiles: File[]) => {
+    acceptedFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        const img = new window.Image(); // Aqui corrigimos para evitar conflito
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const newFile: ImageData = {
+            file,
+            preview: img.src,
+            size: file.size,
+            dimensions: { width: img.width, height: img.height },
+          };
+          setFiles((prevFiles) => [...prevFiles, newFile]);
+        };
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': ['.jpeg', '.jpg'],
+      'image/png': ['.png'],
+    },
+    multiple: true,
+  });
+
+  const handleClear = () => {
+    setFiles([]);
+  };
+
+  const handleSend = async () => {
+    // Aqui é onde você faria a requisição para o servidor
+    // Exemplo de como enviar as imagens utilizando axios (comentado):
+    /*
+    const formData = new FormData();
+    files.forEach((fileData) => {
+      formData.append('images', fileData.file);
+    });
+    
+    try {
+      const response = await axios.post('http://localhost:3000/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('Imagens enviadas com sucesso:', response.data);
+    } catch (error) {
+      console.error('Erro ao enviar imagens:', error);
+    }
+    */
+  };
+
+  return (
+    <Container className="mt-4">
+      <Row className="justify-content-center">
+        <Col md={8}>
+          <div
+            {...getRootProps()}
+            className="border p-5 text-center mb-4"
+            style={{
+              borderStyle: 'dashed',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              backgroundColor: '#f9f9f9',
+            }}
+          >
+            <input {...getInputProps()} />
+            <FaCloudUploadAlt size={50} className="text-muted mb-3" />
+            <p>Arraste e solte as imagens aqui, ou clique para selecionar</p>
+          </div>
+        </Col>
+      </Row>
+
+      <Row className="justify-content-center">
+        <Col md={8}>
+          <Button
+            variant="primary"
+            className="mb-3"
+            onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
+          >
+            <FaFileUpload /> Selecionar Mais Imagens
+          </Button>
+
+          <Button variant="danger" className="mb-3 ms-3" onClick={handleClear}>
+            <FaTrash /> Limpar
+          </Button>
+          <Button variant="success" className="mb-3 ms-3" onClick={handleSend}>
+            Enviar
+          </Button>
+        </Col>
+      </Row>
+
+      <Row className="justify-content-center">
+        <Col md={8}>
+          <div
+            style={{
+              maxHeight: '300px',
+              overflowY: 'auto',
+              border: '1px solid #ddd',
+              borderRadius: '10px',
+              padding: '10px',
+              backgroundColor: '#f9f9f9',
+            }}
+          >
+            <ListGroup>
+              {files.map((fileData, index) => (
+                <ListGroup.Item key={index} className="d-flex align-items-center">
+                  <Image
+                    src={fileData.preview}
+                    alt="preview"
+                    width={50}
+                    height={50}
+                    style={{ objectFit: 'cover', marginRight: '10px' }}
+                  />
+                  <div>
+                    <p className="mb-0">
+                      <strong>{fileData.file.name}</strong> - {(fileData.size / 1024).toFixed(2)} KB
+                    </p>
+                    <p className="mb-0">
+                      Dimensões: {fileData.dimensions.width} x {fileData.dimensions.height}px
+                    </p>
+                  </div>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </div>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
+
+export default ImageUploadPage;
+
+========================================================
+Arquivo: components/pages/SignInPage.tsx
+----------------------
+// src/components/SignInPage.tsx
+
+import React, { useState, useEffect } from 'react';
+import { Form, Button, Spinner, Container, Row, Col, Alert } from 'react-bootstrap';
+import { useMutation } from 'react-query';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaSignInAlt } from 'react-icons/fa';
+import { useAuth } from '../../contexts/AuthContext'; // Importa o hook useAuth
+
+interface LoginFormValues {
+  username: string;
+  password: string;
+}
+
+interface LoginResponse {
+  username: string;
+  message: string;
+  session_token?: string;
+  user_id?: string;
+  role?: 'admin' | 'user';
+}
+
+const loginUser = async (credentials: LoginFormValues): Promise<LoginResponse> => {
+  // Simula um login com dados hardcoded
+  if (credentials.username === 'admin' && credentials.password === 'admin123') {
+    return {
+      message: 'Login successful',
+      session_token: 'admin_token_123',
+      user_id: '1',
+      role: 'admin',
+      username: 'admin',
+    };
+  } else if (credentials.username === 'user' && credentials.password === 'user123') {
+    return {
+      message: 'Login successful',
+      session_token: 'user_token_123',
+      user_id: '2',
+      role: 'user',
+      username: 'user',
+    };
+  } else {
+    throw new Error('Credenciais inválidas');
+  }
+};
+
+const SignIn: React.FC = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showTempButtons, setShowTempButtons] = useState(true); // Controle para exibir ou ocultar os botões temporários
+  const [notification, setNotification] = useState<string | null>(null); // Notificação de redirecionamento
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth(); // Usa o hook useAuth para obter a função login
+
+  useEffect(() => {
+    // Checa se há uma razão para redirecionamento no query string
+    const queryParams = new URLSearchParams(location.search);
+    const reason = queryParams.get('reason');
+    if (reason) {
+      setNotification(reason); // Define a notificação de redirecionamento
+    }
+  }, [location.search]);
+
+  const mutation = useMutation(loginUser, {
+    onSuccess: (data) => {
+      if (data.session_token && data.user_id && data.role) {
+        // Chama o login do contexto de autenticação
+        login({
+          username: data.username,
+          user_id: data.user_id,
+          session_token: data.session_token,
+          role: data.role,
+        });
+
+        // Redireciona para a página de boas-vindas
+        navigate('/welcome');
+      }
+    },
+    onError: () => {
+      alert('Credenciais inválidas. Tente novamente.');
+    },
+  });
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    mutation.mutate({ username, password });
+  };
+
+  return (
+    <Container className="d-flex justify-content-center align-items-center vh-100">
+      <Form onSubmit={handleSubmit} className="w-50">
+        <h3 className="text-center mb-4">Login</h3>
+
+        {/* Exibe a notificação de redirecionamento, se houver */}
+        {notification && (
+          <Alert variant="warning" className="text-center">
+            {notification}
+          </Alert>
+        )}
+
+        {/* Botões temporários de login rápido */}
+        {showTempButtons && (
+          <Alert variant="warning" onClose={() => setShowTempButtons(false)} dismissible>
+            <Row>
+              <Col>
+                <Button
+                  variant="danger"
+                  className="w-100 mb-2"
+                  onClick={() => mutation.mutate({ username: 'admin', password: 'admin123' })}
+                  style={{ fontWeight: 'bold' }}
+                >
+                  Login como Administrador (Admin)
+                </Button>
+              </Col>
+              <Col>
+                <Button
+                  variant="success"
+                  className="w-100 mb-2"
+                  onClick={() => mutation.mutate({ username: 'user', password: 'user123' })}
+                  style={{ fontWeight: 'bold' }}
+                >
+                  Login como Usuário Normal
+                </Button>
+              </Col>
+            </Row>
+          </Alert>
+        )}
+
+        <Form.Group controlId="formUsername">
+          <Form.Label>Username</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <Form.Group controlId="formPassword" className="mt-3">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </Form.Group>
+
+        <Button variant="primary" type="submit" className="w-100 mt-4" disabled={mutation.isLoading}>
+          {mutation.isLoading ? (
+            <Spinner animation="border" size="sm" />
+          ) : (
+            <>
+              <FaSignInAlt /> Login
+            </>
+          )}
+        </Button>
+      </Form>
+    </Container>
+  );
+};
+
+const SignInPage: React.FC = () => {
+  return <SignIn />;
+};
+
+export default SignInPage;
+
+========================================================
+Arquivo: components/pages/ValidationPage.tsx
+----------------------
+import FileManager from "components/validation/old/FileManager";
+import React from "react";
+
+const ValidationPage: React.FC = () => {
+    return (
+        <FileManager />
+    );
+}
+
+export default ValidationPage;
+
+========================================================
+Arquivo: components/pages/WelcomePage.tsx
+----------------------
+// src/components/WelcomePage.tsx
+
+import React from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'; // Usa o hook de autenticação
+import routes from '../../config/routes'; // Importa as rotas
+import { useAllowedRoles } from 'contexts/AllowedRolesContext';
+
+const WelcomePage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth(); // Usa o contexto de autenticação para acessar o usuário
+  const { allowedRoles } = useAllowedRoles();
+
+
+  return (
+    <Container className="d-flex flex-column justify-content-center align-items-center vh-100">
+      <h1 className="mb-4">Bem-vindo, {user!.username}!</h1>
+
+      {/* Exibe apenas as rotas que o usuário tem permissão para acessar */}
+      {routes
+        .filter(route => route.showInWelcomePage && route.roles.includes(user!.role))
+        .map((route, idx) => (
+          <Row className="text-center w-50 mb-3" key={idx}>
+            <Col>
+              <button onClick={() => navigate(route.path)}>{route.name}</button>
+            </Col>
+          </Row>
+        ))}
+    </Container>
+  );
+};
+
+export default WelcomePage;
+
+========================================================
+Pasta: components/rectangles
+----------------------
+Arquivo: components/rectangles/interfaces.ts
+----------------------
+
+export interface Rectangle {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    class_id: number;
+    }
+
+
+========================================================
+Pasta: components/routes
+----------------------
+Arquivo: components/routes/ProtectedRoute.tsx
+----------------------
+// src/components/ProtectedRoute.tsx
+
+import React, { PropsWithChildren } from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext'; // Usa o contexto de autenticação
+import { useAllowedRoles } from 'contexts/AllowedRolesContext';
+
+
+const ProtectedRoute: React.FC<PropsWithChildren> = ({ children }) => {
+  const {allowedRoles} = useAllowedRoles();
+  const { user, isAuthenticated } = useAuth(); // Obtém o usuário e o estado de autenticação do contexto
+ 
+  if ( !isAuthenticated ){
+    console.log('Not authenticated, redirecting to sign-in, user:', user);
+
+    return <Navigate to="/sign-in" />; // Redireciona para a página de login
+
+  }
+  if ( user?.role && !allowedRoles.includes(user.role) ) {
+    console.log('User does not have the required role, redirecting to forbidden, user:', user);
+    return <Navigate to="/forbidden" />; // Redireciona para a página de "Acesso Negado"
+  }
+
+  return <>{children}</>
+};
+
+export default ProtectedRoute;
+
+========================================================
+Pasta: components/validation
+----------------------
+Pasta: components/validation/new
+----------------------
+Pasta: components/validation/new/components
+----------------------
+Pasta: components/validation/new/components/FilterForm
+----------------------
+Pasta: components/validation/new/components/FilterForm/components
+----------------------
+Arquivo: components/validation/new/components/FilterForm/components/FilterClassSelect.tsx
+----------------------
+// src/components/FilterForm/components/FilterClassSelect.tsx
+import React, { useState, useEffect, useContext } from 'react';
+import Select, { MultiValue } from 'react-select';
+import useFetchClasses from '../hooks/useFetchClasses';
+import { FiltersContext } from '../../../contexts/FiltersContext';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
+
+const FilterClassSelect: React.FC = () => {
+  const { selectedClasses } = useContext(FiltersContext)!; // Pegando as classes do contexto
+  const { classes, loadingClasses } = useFetchClasses();
+  const [selectedOptions, setSelectedOptions] = useState<MultiValue<OptionType>>([]);
+
+  // Quando as classes são carregadas, atualiza o estado da seleção com base no contexto
+  useEffect(() => {
+    if (!loadingClasses && classes.length > 0) {
+      const preselected = classes.filter(cls => (selectedClasses || []).includes(cls.value));
+      setSelectedOptions(preselected);
+    }
+  }, [loadingClasses, classes, selectedClasses]);
+
+  return (
+    <Select
+      isMulti
+      options={classes}
+      value={selectedOptions}
+      onChange={setSelectedOptions}
+      isLoading={loadingClasses}
+      placeholder="Selecione as classes"
+      isSearchable
+    />
+  );
+};
+
+export default FilterClassSelect;
+
+========================================================
+Arquivo: components/validation/new/components/FilterForm/components/FilterUserSelect.tsx
+----------------------
+// src/components/FilterForm/components/FilterUserSelect.tsx
+import React, { useState, useEffect, useContext } from 'react';
+import Select, { MultiValue } from 'react-select';
+import useFetchUsers from '../hooks/useFetchUsers';
+import { FiltersContext } from '../../../contexts/FiltersContext';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
+
+const FilterUserSelect: React.FC = () => {
+  const { selectedUsers } = useContext(FiltersContext)!; // Pegando os usuários do contexto
+  const { users, loadingUsers } = useFetchUsers();
+  const [selectedOptions, setSelectedOptions] = useState<MultiValue<OptionType>>([]);
+
+  // Quando os usuários são carregados, atualiza o estado da seleção com base no contexto
+  useEffect(() => {
+    if (!loadingUsers && users.length > 0) {
+      console.log(`selected users: ${selectedUsers}`)
+      const preselected = users.filter(user => {
+        console.log(`user: ${user}`)
+        return (selectedUsers || []).includes(user.value);
+      });
+      setSelectedOptions(preselected);
+    }
+  }, [loadingUsers, users, selectedUsers]);
+
+  return (
+    <Select
+      isMulti
+      options={users}
+      value={selectedOptions}
+      onChange={setSelectedOptions}
+      isLoading={loadingUsers}
+      placeholder="Selecione os usuários"
+      isSearchable
+    />
+  );
+};
+
+export default FilterUserSelect;
+
+========================================================
+Pasta: components/validation/new/components/FilterForm/hooks
+----------------------
+Arquivo: components/validation/new/components/FilterForm/hooks/useFetchClasses.ts
+----------------------
+import { useState, useEffect } from 'react';
+import { fetchMockClasses } from '../../../services/mockApi';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
+
+const useFetchClasses = () => {
+  const [classes, setClasses] = useState<OptionType[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+
+  useEffect(() => {
+    setLoadingClasses(true);
+    fetchMockClasses().then((data) => {
+      const classOptions = data.map(cls => ({ value: cls, label: cls }));
+      setClasses(classOptions);
+      setLoadingClasses(false);
+    });
+  }, []);
+
+  return { classes, loadingClasses };
+};
+
+export default useFetchClasses;
+
+========================================================
+Arquivo: components/validation/new/components/FilterForm/hooks/useFetchUsers.ts
+----------------------
+import { useState, useEffect } from 'react';
+import { fetchMockUsers } from '../../../services/mockApi';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
+
+const useFetchUsers = () => {
+  const [users, setUsers] = useState<OptionType[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  useEffect(() => {
+    setLoadingUsers(true);
+    fetchMockUsers().then((data) => {
+      const userOptions = data.map(user => ({ value: user, label: user }));
+      setUsers(userOptions);
+      setLoadingUsers(false);
+    });
+  }, []);
+
+  return { users, loadingUsers };
+};
+
+export default useFetchUsers;
+
+========================================================
+Arquivo: components/validation/new/components/FilterForm/index.tsx
+----------------------
+import React, { useState, useContext } from "react";
+import { Button, Modal } from 'react-bootstrap';
+import { FiltersContext } from '../../contexts/FiltersContext';
+import FilterTemplate from './templates/FilterTemplate';
+
+const FilterForm: React.FC = () => {
+  const { setFilters } = useContext(FiltersContext)!;
+  const [showModal, setShowModal] = useState(false);
+
+  // Aplicar os filtros selecionados e fechar o modal
+  const handleApplyFilters = (filters: any) => {
+    setFilters(filters);
+    setShowModal(false);
+  };
+
+  // Limpar os filtros sem fechar o modal
+  const handleClearFilters = () => {
+    // Implementação adicional se necessária
+  };
+
+  return (
+    <>
+      {/* Modal que contém o formulário de filtros */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>Configurações de Filtro</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <FilterTemplate onApplyFilters={handleApplyFilters} onClearFilters={handleClearFilters} />
+        </Modal.Body>
+      </Modal>
+
+      {/* Botão flutuante para abrir o modal de filtros */}
+      <Button
+        onClick={() => setShowModal(true)}
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          zIndex: 1050,
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          backgroundColor: '#007bff',
+          color: '#fff',
+        }}
+      >
+        Filtros
+      </Button>
+    </>
+  );
+};
+
+export default FilterForm;
+
+========================================================
+Pasta: components/validation/new/components/FilterForm/templates
+----------------------
+Arquivo: components/validation/new/components/FilterForm/templates/FilterTemplate.tsx
+----------------------
+// src/components/FilterForm/templates/FilterTemplate.tsx
+import React, { useState, useEffect, useContext } from 'react';
+import { Row, Col, Button, Form } from 'react-bootstrap';
+import FilterUserSelect from '../components/FilterUserSelect';
+import FilterClassSelect from '../components/FilterClassSelect';
+import { FiltersContext } from '../../../contexts/FiltersContext';
+
+interface FilterTemplateProps {
+  onApplyFilters: (filters: any) => void;
+  onClearFilters: () => void;
+}
+
+const FilterTemplate: React.FC<FilterTemplateProps> = ({ onApplyFilters, onClearFilters }) => {
+  const { startDate, endDate, sortOrder } = useContext(FiltersContext)!;
+  const [localStartDate, setLocalStartDate] = useState('');
+  const [localEndDate, setLocalEndDate] = useState('');
+  const [localSortOrder, setLocalSortOrder] = useState('asc');
+
+  // Atualiza o estado local com as informações do contexto diretamente
+  useEffect(() => {
+    setLocalStartDate(startDate);
+    setLocalEndDate(endDate);
+    setLocalSortOrder(sortOrder);
+  }, [startDate, endDate, sortOrder]);
+
+  const handleApply = () => {
+    onApplyFilters({
+      startDate: localStartDate,
+      endDate: localEndDate,
+      sortOrder: localSortOrder,
+    });
+  };
+
+  return (
+    <>
+      <Form>
+        <Row className="mb-3">
+          <Col md={6}>
+            <FilterUserSelect />
+          </Col>
+          <Col md={6}>
+            <FilterClassSelect />
+          </Col>
+        </Row>
+        <Row className="mb-3">
+          <Col md={3}>
+            <Form.Group controlId="formStartDate">
+              <Form.Label>Data de Início</Form.Label>
+              <Form.Control
+                type="date"
+                value={localStartDate}
+                onChange={e => setLocalStartDate(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={3}>
+            <Form.Group controlId="formEndDate">
+              <Form.Label>Data de Fim</Form.Label>
+              <Form.Control
+                type="date"
+                value={localEndDate}
+                onChange={e => setLocalEndDate(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={3}>
+            <Form.Group controlId="formSortOrder">
+              <Form.Label>Ordenar por Data</Form.Label>
+              <Form.Select
+                value={localSortOrder}
+                onChange={e => setLocalSortOrder(e.target.value)}
+              >
+                <option value="asc">Data Crescente</option>
+                <option value="desc">Data Decrescente</option>
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+      </Form>
+
+      <div className="d-flex justify-content-end mt-4">
+        <Button variant="secondary" onClick={onClearFilters} className="me-2">
+          Limpar Filtros
+        </Button>
+        <Button variant="primary" onClick={handleApply}>
+          Aplicar Filtros
+        </Button>
+      </div>
+    </>
+  );
+};
+
+export default FilterTemplate;
+
+========================================================
+Arquivo: components/validation/new/components/ImageCanvas.tsx
+----------------------
+import React, { useRef, useEffect, useState } from 'react'; 
+import { Stage, Layer, Rect, Image as KonvaImage } from 'react-konva';
+import useImage from 'use-image';
+
+interface ImageCanvasProps {
+  imageUrl: string;
+  rectangles: { x: number; y: number; width: number; height: number; class_id: number }[];
+  width: number;
+  height: number;
+}
+
+// Paleta de cores para os diferentes class_ids
+const colorPalette = [
+  '#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#FFC300',
+  '#581845', '#DAF7A6', '#900C3F', '#C70039', '#2ECC71'
+];
+
+const getColorByClassId = (class_id: number) => {
+  return colorPalette[class_id % colorPalette.length];
+};
+
+const ImageCanvas: React.FC<ImageCanvasProps> = ({ imageUrl, rectangles, width, height }) => {
+  const [image] = useImage(imageUrl); // Hook para carregar a imagem
+  const [canvasSize, setCanvasSize] = useState({ width, height });
+  const stageRef = useRef(null);
+
+  // Atualiza o tamanho do canvas com base no tamanho da imagem carregada
+  useEffect(() => {
+    if (image) {
+      const aspectRatio = image.width / image.height;
+      if (width / height > aspectRatio) {
+        setCanvasSize({ width: height * aspectRatio, height });
+      } else {
+        setCanvasSize({ width, height: width / aspectRatio });
+      }
+    }
+  }, [image, width, height]);
+
+  return (
+    <Stage width={canvasSize.width} height={canvasSize.height} ref={stageRef}>
+      <Layer>
+        {/* Exibe a imagem como fundo do canvas */}
+        {image && (
+          <KonvaImage
+            image={image}
+            x={0}
+            y={0}
+            width={canvasSize.width}
+            height={canvasSize.height}
+          />
+        )}
+
+        {/* Desenha os retângulos sobre a imagem */}
+        {rectangles.map((rect, index) => (
+          <Rect
+            key={index}
+            x={rect.x * canvasSize.width}
+            y={rect.y * canvasSize.height}
+            width={rect.width * canvasSize.width}
+            height={rect.height * canvasSize.height}
+            stroke={getColorByClassId(rect.class_id)}
+            strokeWidth={2}
+          />
+        ))}
+      </Layer>
+    </Stage>
+  );
+};
+
+export default ImageCanvas;
+
+========================================================
+Arquivo: components/validation/new/components/ImageModal.tsx
+----------------------
+import React from 'react';
+import { Modal, Button, ListGroup } from 'react-bootstrap';
+import { useModal } from '../contexts/ModalContext';
+import ImageCanvas from './ImageCanvas';
+
+const ImageModal: React.FC = () => {
+  const { isOpen, selectedCard, closeModal } = useModal();
+
+  if (!selectedCard) return null;
+
+  return (
+    <Modal show={isOpen} onHide={closeModal} size="lg" centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{selectedCard.user_name}'s Image</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+          {/* Ajusta o tamanho do canvas para se adaptar ao modal */}
+          <div style={{ width: '100%', maxHeight: '100%', overflow: 'hidden' }}>
+            <ImageCanvas
+              imageUrl={selectedCard.image_url}
+              rectangles={selectedCard.rectangles}
+              width={900}  // Largura do canvas ajustada ao modal
+              height={500} // Altura do canvas ajustada ao modal
+            />
+          </div>
+        </div>
+
+        {/* Timestamp centralizado */}
+        <p className="text-center mt-3">Timestamp: {new Date(selectedCard.timestamp).toLocaleString()}</p>
+
+        <h5>Rectangles:</h5>
+        <ListGroup>
+          {selectedCard.rectangles.map((rect, index) => (
+            <ListGroup.Item key={index}>
+              Rect {index + 1}: [x: {rect.x}, y: {rect.y}, width: {rect.width}, height: {rect.height}, class_id: {rect.class_id}]
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={closeModal}>
+          Fechar
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+export default ImageModal;
+
+========================================================
+Pasta: components/validation/new/components/ScrollWindowing
+----------------------
+Pasta: components/validation/new/components/ScrollWindowing/components
+----------------------
+Arquivo: components/validation/new/components/ScrollWindowing/components/CardComponent.css
+----------------------
+.card-container {
+    position: relative;
+    width: 300px;
+    height: 250px;
+  }
+  
+  .image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Mantém a imagem com a proporção correta */
+  }
+  
+  /* Espaço entre os cards na vertical */
+  .mb-4 {
+    margin-bottom: 30px !important;
+  }
+  
+  /* Espaçamento horizontal entre os cards */
+  .card-container {
+    margin-right: 15px;
+  }
+  .card-image-container {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+  
+  .card-container .image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+========================================================
+Arquivo: components/validation/new/components/ScrollWindowing/components/CardComponent.tsx
+----------------------
+import React from 'react';
+import { Card } from 'react-bootstrap';
+import { motion } from 'framer-motion';
+import './CardComponent.css';
+import { useModal } from '../../../contexts/ModalContext';
+import { Rectangle } from 'components/rectangles/interfaces';
+import ImageCanvas from '../../ImageCanvas';
+
+export interface CardInfo {
+  image_url: string;
+  user_name: string;
+  rectangles: Rectangle[];
+  timestamp: Date;
+}
+
+interface CardComponentProps {
+  item: CardInfo;
+  x: number;
+  y: number;
+}
+
+const CardComponent: React.FC<CardComponentProps> = ({ item, x, y }) => {
+  const { openModal } = useModal();
+
+  const handleCardClick = () => {
+    openModal(item);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="mb-4 shadow-sm card-container" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+        <div className="card-image-container">
+          <ImageCanvas 
+            imageUrl={item.image_url} 
+            rectangles={item.rectangles}
+            width={300}  // Ajusta o tamanho do canvas no card
+            height={200}
+          />
+        </div>
+        <Card.Body className="text-center">
+          <Card.Title>{item.user_name}</Card.Title>
+          <p>
+            Position: ({x}, {y})
+          </p>
+          <p>{item.timestamp.toLocaleDateString()}</p>
+        </Card.Body>
+      </Card>
+    </motion.div>
+  );
+};
+
+export default CardComponent;
+
+========================================================
+Pasta: components/validation/new/components/ScrollWindowing/hooks
+----------------------
+Arquivo: components/validation/new/components/ScrollWindowing/hooks/useInfiniteScroll.tsx
+----------------------
+import { useState, useCallback, useRef } from 'react';
+import { CardData, generateInitialData } from '../utils/generateInitialData';
+
+export const useInfiniteScroll = (initialCount: number) => {
+  const [cards, setCards] = useState<CardData[]>(generateInitialData(0, initialCount));
+  const [itemCount, setItemCount] = useState(initialCount);
+  const loadedCards = useRef<{ [key: number]: boolean }>({}); // Ref para armazenar os cards carregados
+
+  const loadMoreItems = useCallback(() => {
+    const newCards = generateInitialData(itemCount, 10); // Carrega mais 10 cards
+    setCards((prevCards) => [...prevCards, ...newCards]);
+    setItemCount((prevCount) => prevCount + 10);
+  }, [itemCount]);
+
+  const loadCard = (index: number) => {
+    if (!loadedCards.current[index]) {
+      setTimeout(() => {
+        setCards((prevCards) =>
+          prevCards.map((card, i) =>
+            i === index ? { ...card, isLoading: false, isLoaded: true } : card
+          )
+        );
+        loadedCards.current[index] = true; // Marca o card como carregado
+      }, 1000); // Simula o tempo de carregamento de 1 segundo
+    }
+  };
+
+  return { cards, itemCount, loadMoreItems, loadCard };
+};
+
+========================================================
+Arquivo: components/validation/new/components/ScrollWindowing/index.tsx
+----------------------
+import React from 'react';
+import { FixedSizeGrid as Grid } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { Container, Spinner } from 'react-bootstrap';
+import CardComponent, { CardInfo } from './components/CardComponent';
+import { Size } from 'react-virtualized';
+import { useQuery } from '../../contexts/QueryContext';
+
+const GridComponent: React.FC = () => {
+  const { images, isLoading } = useQuery(); // Pega os dados e o estado de carregamento do contexto
+
+  if (isLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+        <span className="sr-only">Carregando...</span>
+        <Spinner animation="border" role="status">
+          
+        </Spinner>
+      </div>
+    );
+  }
+
+  const columnCount = 4; // Definimos o número de colunas
+
+  return (
+    <Container fluid style={{ height: '100vh' }}>
+      <AutoSizer>
+        {({ width, height }: Size) => {
+          const gap = 20;
+          const totalWidth = width - gap * (columnCount - 1);
+          const columnWidth = totalWidth / columnCount;
+          const rowHeight = columnWidth * 1.2;
+
+          return (
+            <Grid
+              columnCount={columnCount}
+              columnWidth={columnWidth}
+              height={height}
+              rowCount={Math.ceil(images.length / columnCount)}
+              rowHeight={rowHeight + gap}
+              width={width}
+              overscanRowCount={1}
+              overscanColumnCount={1}
+              style={{
+                padding: `${gap}px`,
+                border: '2px solid #ccc',
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                overflowX: 'hidden',
+              }}
+            >
+              {({ columnIndex, rowIndex, style }) => {
+                const itemIndex = rowIndex * columnCount + columnIndex;
+                const item = images[itemIndex];
+
+                return (
+                  <div style={{ ...style, padding: '10px' }}>
+                    {item && <CardComponent item={item} x={columnIndex} y={rowIndex} />}
+                  </div>
+                );
+              }}
+            </Grid>
+          );
+        }}
+      </AutoSizer>
+    </Container>
+  );
+};
+
+export default GridComponent;
+
+========================================================
+Pasta: components/validation/new/components/ScrollWindowing/utils
+----------------------
+Arquivo: components/validation/new/components/ScrollWindowing/utils/generateInitialData.ts
+----------------------
+export interface CardData {
+  id: number;
+  isLoading: boolean;
+  isLoaded: boolean;
+}
+
+export const generateInitialData = (start: number, count: number): CardData[] => {
+  return Array.from({ length: count }, (_, index) => ({
+    id: start + index,
+    isLoading: true,
+    isLoaded: false,
+  }));
+};
+
+========================================================
+Pasta: components/validation/new/contexts
+----------------------
+Arquivo: components/validation/new/contexts/FiltersContext.tsx
+----------------------
+// src/contexts/FiltersContext.tsx
+import React, { createContext, useState, ReactNode } from 'react';
+
+interface FiltersContextType {
+  selectedUsers: string[];
+  selectedClasses: string[];
+  startDate: string;
+  endDate: string;
+  sortOrder: string;
+  setFilters: (filters: {
+    selectedUsers: string[];
+    selectedClasses: string[];
+    startDate: string;
+    endDate: string;
+    sortOrder: string;
+  }) => void;
+}
+
+export const FiltersContext = createContext<FiltersContextType | undefined>(undefined);
+
+export const FiltersProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [filters, setFiltersState] = useState({
+    selectedUsers: [] as string[],
+    selectedClasses: [] as string[],
+    startDate: '',
+    endDate: '',
+    sortOrder: 'asc',
+  });
+
+  const setFilters = (newFilters: {
+    selectedUsers: string[];
+    selectedClasses: string[];
+    startDate: string;
+    endDate: string;
+    sortOrder: string;
+  }) => {
+    setFiltersState(newFilters);
+  };
+
+  return (
+    <FiltersContext.Provider value={{ ...filters, setFilters }}>
+      {children}
+    </FiltersContext.Provider>
+  );
+};
+
+========================================================
+Arquivo: components/validation/new/contexts/ModalContext.tsx
+----------------------
+import React, { createContext, useState, useContext, PropsWithChildren } from 'react';
+import { CardInfo } from '../components/ScrollWindowing/components/CardComponent'; // Certifique-se de que este caminho seja o correto
+
+interface ModalContextType {
+  isOpen: boolean;
+  selectedCard: CardInfo | null;
+  openModal: (card: CardInfo) => void;
+  closeModal: () => void;
+}
+
+const ModalContext = createContext<ModalContextType>({
+  isOpen: false,
+  selectedCard: null,
+  openModal: () => {},
+  closeModal: () => {},
+});
+
+export const ModalProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CardInfo | null>(null);
+
+  const openModal = (card: CardInfo) => {
+    setSelectedCard(card);
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setSelectedCard(null);
+  };
+
+  return (
+    <ModalContext.Provider value={{ isOpen, selectedCard, openModal, closeModal }}>
+      {children}
+    </ModalContext.Provider>
+  );
+};
+
+export const useModal = () => useContext(ModalContext);
+
+========================================================
+Arquivo: components/validation/new/contexts/QueryContext.tsx
+----------------------
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren } from 'react';
+import { CardInfo } from '../components/ScrollWindowing/components/CardComponent';
+import { generateMockData, generateMockData2 } from '../utils/mockData'; // Certifique-se de que esse caminho esteja correto
+
+interface QueryContextType {
+  images: CardInfo[];
+  isLoading: boolean;
+}
+
+const QueryContext = createContext<QueryContextType>({
+  images: [],
+  isLoading: true,
+});
+
+export const QueryProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  const [images, setImages] = useState<CardInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simula uma chamada de API, com um delay de 3 segundos
+    const fetchImages = async () => {
+      setIsLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // Espera 3 segundos
+    //   const data = generateMockData(201); // Gera os dados simulados
+      const data = generateMockData2(); // Gera os dados simulados
+      setImages(data);
+      setIsLoading(false);
+    };
+
+    fetchImages();
+  }, []);
+
+  return (
+    <QueryContext.Provider value={{ images, isLoading }}>
+      {children}
+    </QueryContext.Provider>
+  );
+};
+
+export const useQuery = () => useContext(QueryContext);
+
+========================================================
+Pasta: components/validation/new/hooks
+----------------------
+Arquivo: components/validation/new/hooks/useFetchUsers.tsx
+----------------------
+import { useState, useEffect } from 'react';
+
+export const useFetchUsers = () => {
+  const [users, setUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Mock de busca de usuários
+    setUsers(['user1', 'user2', 'user3']);
+  }, []);
+
+  return users;
+};
+
+========================================================
+Pasta: components/validation/new/layouts
+----------------------
+Arquivo: components/validation/new/layouts/PageLayout.tsx
+----------------------
+[ARQUIVO VAZIO]
+
+========================================================
+Pasta: components/validation/new/pages
+----------------------
+Arquivo: components/validation/new/pages/NewValidationPage.tsx
+----------------------
+import React from 'react';
+import FilterForm from '../components/FilterForm';
+import { FiltersProvider } from '../contexts/FiltersContext';
+import { QueryProvider } from '../contexts/QueryContext'; // Novo contexto de queries
+import { ModalProvider } from '../contexts/ModalContext';
+import GridComponent from '../components/ScrollWindowing';
+import ImageModal from '../components/ImageModal';
+
+const NewValidationPage: React.FC = () => {
+  return (
+    <FiltersProvider>
+      <QueryProvider>
+        <ModalProvider>
+          <div className="container mt-4">
+            <h2>Validação de imagens</h2>
+            <FilterForm />
+            <GridComponent />
+            <ImageModal />
+          </div>
+        </ModalProvider>
+      </QueryProvider>
+    </FiltersProvider>
+  );
+};
+
+export default NewValidationPage;
+
+========================================================
+Pasta: components/validation/new/services
+----------------------
+Arquivo: components/validation/new/services/mockApi.ts
+----------------------
+export const fetchMockImages = async (filters: any) => {
+  // Mock de resposta com base nos filtros
+  return [
+    {
+      src: 'https://example.com/image1.jpg',
+      rectangles: [{ x: 10, y: 10, width: 50, height: 50, fill: 'red' }],
+      user: 'user1',
+    },
+    {
+      src: 'https://example.com/image2.jpg',
+      rectangles: [{ x: 20, y: 20, width: 60, height: 60, fill: 'blue' }],
+      user: 'user2',
+    },
+  ];
+};
+
+
+// src/services/mockApi.ts
+export const fetchMockUsers = async () => {
+  return new Promise<string[]>((resolve) => {
+    setTimeout(() => {
+      resolve(['user1', 'user2', 'user3', 'user4','user5','user6','user7','user8','user9','user10']);
+    }, 5000); // Delay de 1 segundo
+  });
+};
+
+export const fetchMockClasses = async () => {
+  return new Promise<string[]>((resolve) => {
+    setTimeout(() => {
+      resolve(['class1', 'class2', 'class3', 'class4']);
+    }, 5000); // Delay de 1 segundo
+  });
+};
+
+========================================================
+Pasta: components/validation/new/utils
+----------------------
+Arquivo: components/validation/new/utils/mockData.ts
+----------------------
+import { CardInfo } from '../components/ScrollWindowing/components/CardComponent';
+import { getRandomNumber } from './randomUtils'; // Função de números aleatórios
+
+// Função utilitária para gerar um número aleatório entre min e max
+export const generateMockData = (count: number): CardInfo[] => {
+  return Array.from({ length: count }, (_, index) => ({
+    image_url: `https://picsum.photos/seed/${index}/300/200`,
+    user_name: `User ${Math.floor(getRandomNumber(1, 10))}`, // Gera um usuário aleatório de 1 a 10
+    rectangles: Array.from({ length: Math.floor(getRandomNumber(1, 5)) }, () => ({
+      x: getRandomNumber(0, 1),
+      y: getRandomNumber(0, 1),
+      width: getRandomNumber(0, 1),
+      height: getRandomNumber(0, 1),
+      class_id: Math.floor(getRandomNumber(0, 10)),
+    })),
+    timestamp: new Date(),
+  }));
+};
+
+export const generateMockData2 = (): CardInfo[] => {
+
+    const imagem1 = {
+        image_url: 'https://picsum.photos/seed/1/300/200',
+        user_name: 'User 1',
+        rectangles: [
+            {
+                x: 0.1,
+                y: 0.1,
+                width: 0.2,
+                height: 0.2,
+                class_id: 1
+            },
+            {
+                x: 0.3,
+                y: 0.3,
+                width: 0.2,
+                height: 0.2,
+                class_id: 2
+            }
+        ],
+        timestamp: new Date()
+    };
+
+    const imagem2 = {
+        image_url: 'https://picsum.photos/seed/2/300/200',
+        user_name: 'User 2',
+        rectangles: [
+            {
+                x: 0.1,
+                y: 0.1,
+                width: 0.2,
+                height: 0.2,
+                class_id: 1
+            },
+            {
+                x: 0.3,
+                y: 0.3,
+                width: 0.2,
+                height: 0.2,
+                class_id: 2
+            }
+        ],
+        timestamp: new Date()
+    };
+
+
+    return [imagem1, imagem2];
+};
+========================================================
+Arquivo: components/validation/new/utils/randomUtils.ts
+----------------------
+// Função para gerar um número aleatório entre min e max
+export const getRandomNumber = (min: number, max: number): number => {
+    return Math.random() * (max - min) + min;
+  };
+  
+========================================================
+Pasta: components/validation/old
+----------------------
+Arquivo: components/validation/old/AuthContext.tsx
+----------------------
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import axios from 'axios';
+
+interface AuthContextProps {
+    isAuthenticated: boolean;
+    login: (email: string, password: string) => Promise<void>;
+    logout: () => void;
+    error: string | null;
+    setError: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const login = async (email: string, password: string) => {
+        try {
+            const response = await axios.post('/api/login', { email, password });
+            if (response.status === 200) {
+                setIsAuthenticated(true);
+                setError(null);
+                localStorage.setItem('token', response.data.token);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                if (error.response.status === 401) {
+                    setError('Incorrect username or password.');
+                } else {
+                    setError('Service is currently unavailable. Please try again later.');
+                }
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
+            setIsAuthenticated(false);
+        }
+    };
+
+    const logout = () => {
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
+    };
+
+    return (
+        <AuthContext.Provider value={{ isAuthenticated, login, logout, error, setError }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};
+
+========================================================
+Arquivo: components/validation/old/ErrorModal.tsx
+----------------------
+import React from 'react';
+import { Modal, Button } from 'react-bootstrap';
+
+interface ErrorModalProps {
+    show: boolean;
+    handleClose: () => void;
+    errorMessage: string;
+}
+
+const ErrorModal: React.FC<ErrorModalProps> = ({ show, handleClose, errorMessage }) => {
+    return (
+        <Modal show={show} onHide={handleClose} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Login Error</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+                <p>{errorMessage}</p>
+            </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                    Close
+                </Button>
+            </Modal.Footer>
+        </Modal>
+    );
+};
+
+export default ErrorModal;
+
+========================================================
+Arquivo: components/validation/old/FileCard.tsx
+----------------------
+import React, { useState } from 'react';
+import ImageModal from './ImageModal';
+
+interface FileCardProps {
+    imgSrc: string;
+    fileName: string;
+    fileSize: string;
+    fileDate: string;
+}
+
+const FileCard: React.FC<FileCardProps> = ({ imgSrc, fileName, fileSize, fileDate }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+    return (
+        <>
+            <div className="col-lg-3 col-md-4 col-sm-12">
+                <div className="card">
+                    <div className="file">
+                        <a href="javascript:void(0);" onClick={toggleModal}>
+                            <div className="hover">
+                                <button type="button" className="btn btn-icon btn-danger">
+                                    <i className="fa fa-trash"></i>
+                                </button>
+                            </div>
+                            <div className="image">
+                                <img src={imgSrc} alt="img" className="img-fluid" />
+                            </div>
+                            <div className="file-name">
+                                <p className="m-b-5 text-muted">{fileName}</p>
+                                <small>Size: {fileSize} <span className="date text-muted">{fileDate}</span></small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <ImageModal isOpen={isModalOpen} toggle={toggleModal} imgSrc={imgSrc} />
+        </>
+    );
+}
+
+export default FileCard;
+
+========================================================
+Arquivo: components/validation/old/FileManager.tsx
+----------------------
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import FileCard from './FileCard';
+
+interface File {
+    imgSrc: string;
+    fileName: string;
+    fileSize: string;
+    fileDate: string;
+}
+
+const generateRandomImageUrl = () => `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 10000)}`;
+
+const initialFileData: File[] = [
+    {
+        imgSrc: generateRandomImageUrl(),
+        fileName: 'newfile2.jpg',
+        fileSize: '4MB',
+        fileDate: 'Feb 20, 2019'
+    },
+    // Adicione mais arquivos conforme necessário
+];
+
+const FileManager: React.FC = () => {
+    const [fileData, setFileData] = useState<File[]>(initialFileData);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const observer = useRef<IntersectionObserver | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+    const loadMoreFiles = useCallback(() => {
+        setIsLoading(true);
+
+        // Simulate fetching more data
+        setTimeout(() => {
+            const moreFiles = [
+                {
+                    imgSrc: generateRandomImageUrl(),
+                    fileName: 'newfile1.jpg',
+                    fileSize: '3MB',
+                    fileDate: 'Jan 10, 2018'
+                },
+                {
+                    imgSrc: generateRandomImageUrl(),
+                    fileName: 'newfile2.jpg',
+                    fileSize: '4MB',
+                    fileDate: 'Feb 20, 2019'
+                },
+                // Add more files as needed
+            ];
+            setFileData((prevFiles) => [...prevFiles, ...moreFiles]);
+            setIsLoading(false);
+        }, 2000);
+    }, []);
+
+    useEffect(() => {
+        if (observer.current) observer.current.disconnect();
+
+        observer.current = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !isLoading) {
+                    loadMoreFiles();
+                }
+            },
+            {
+                root: null,
+                rootMargin: '600px', // Trigger loading when 600px away from the bottom
+                threshold: 1.0
+            }
+        );
+
+        if (loadMoreRef.current) observer.current.observe(loadMoreRef.current);
+
+        return () => {
+            if (observer.current) observer.current.disconnect();
+        };
+    }, [isLoading, loadMoreFiles]);
+
+    return (
+        <div id="main-content" className="file_manager">
+            <div className="container">
+                <div className="row clearfix">
+                    {fileData.map((file, index) => (
+                        <FileCard
+                            key={index}
+                            imgSrc={file.imgSrc}
+                            fileName={file.fileName}
+                            fileSize={file.fileSize}
+                            fileDate={file.fileDate}
+                        />
+                    ))}
+                </div>
+                {isLoading && <div>Loading...</div>}
+                <div ref={loadMoreRef} style={{ height: 20 }} />
+            </div>
+        </div>
+    );
+}
+
+export default FileManager;
+
+========================================================
+Arquivo: components/validation/old/ImageModal.tsx
+----------------------
+import React from 'react';
+import {Modal, ModalBody, ModalFooter, ModalHeader} from 'reactstrap';
+import {Button, ModalDialog, ModalTitle} from "react-bootstrap";
+
+interface ImageModalProps {
+    isOpen: boolean;
+    toggle: () => void;
+    imgSrc: string;
+}
+
+const ImageModal: React.FC<ImageModalProps> = ({ isOpen, toggle, imgSrc }) => {
+    
+    
+    return (
+        <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
+            <ModalHeader toggle={toggle} className="border-0">
+            </ModalHeader>
+            <ModalBody className="p-0 d-flex justify-content-center align-items-center">
+                <img src={imgSrc} alt="Modal Image" className="img-fluid w-100 h-100" style={{ objectFit: 'cover' }} />
+            </ModalBody>
+            <ModalFooter className="border-0">
+                <Button variant="secondary">
+                    Classe 1
+                    <ModalDialog>
+                        <ModalHeader>
+                            <ModalTitle>Classe 1</ModalTitle>
+                        </ModalHeader>
+                        <ModalBody>
+                            <p>Classe 1</p>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button variant="secondary" onClick={toggle}>
+                                Close
+                            </Button>
+                        </ModalFooter>
+                    </ModalDialog>
+                </Button>
+                
+                <Button variant="secondary" onClick={toggle}>
+                    Classe 2
+                </Button>
+                
+                <Button variant="secondary" onClick={toggle}>
+                    Classe 3
+                </Button>
+            </ModalFooter>
+        </Modal>
+    );
+}
+
+export default ImageModal;
+
+========================================================
+Arquivo: components/validation/old/LoginCard.tsx
+----------------------
+import React from 'react';
+import { Card } from 'react-bootstrap';
+import LoginForm from './LoginForm';
+import SocialMediaLinks from './SocialMediaLinks';
+
+const LoginCard: React.FC = () => {
+    return (
+        <Card className="bg-dark text-white" style={{ borderRadius: '1rem' }}>
+            <Card.Body className="p-5 text-center">
+                <div className="mb-md-5 mt-md-4 pb-5">
+                    <h2 className="fw-bold mb-2 text-uppercase">Login</h2>
+                    <p className="text-white-50 mb-5">Please enter your login and password!</p>
+                    <LoginForm />
+                    <SocialMediaLinks />
+                </div>  
+                <div>
+                    <p className="mb-0">
+                        Don't have an account?{' '}
+                        <a href="#!" className="text-white-50 fw-bold">
+                            Sign Up
+                        </a>
+                    </p>
+                </div>
+            </Card.Body>
+        </Card>
+    );
+};
+
+export default LoginCard;
+
+========================================================
+Arquivo: components/validation/old/LoginForm.tsx
+----------------------
+import React, { useState, useEffect } from 'react';
+import { Form, Button } from 'react-bootstrap';
+import { useAuth } from './AuthContext';
+import ErrorModal from './ErrorModal';
+
+const LoginForm: React.FC = () => {
+    const { login, error, setError } = useAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showErrorModal, setShowErrorModal] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        await login(email, password);
+    };
+
+    useEffect(() => {
+        if (error) {
+            setShowErrorModal(true);
+        }
+    }, [error]);
+
+    const handleCloseErrorModal = () => {
+        setShowErrorModal(false);
+        setError(null);
+    };
+
+    return (
+        <>
+            <Form onSubmit={handleSubmit}>
+                <Form.Group className="form-outline form-white mb-4">
+                    <Form.Label htmlFor="typeEmailX">Email</Form.Label>
+                    <Form.Control
+                        type="email"
+                        id="typeEmailX"
+                        className="form-control form-control-lg"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </Form.Group>
+
+                <Form.Group className="form-outline form-white mb-4">
+                    <Form.Label htmlFor="typePasswordX">Password</Form.Label>
+                    <Form.Control
+                        type="password"
+                        id="typePasswordX"
+                        className="form-control form-control-lg"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Form.Group>
+
+                <p className="small mb-5 pb-lg-2">
+                    <a className="text-white-50" href="#!">
+                        Forgot password?
+                    </a>
+                </p>
+
+                <Button variant="outline-light" className="btn-lg px-5" type="submit">
+                    Login
+                </Button>
+            </Form>
+
+            <ErrorModal
+                show={showErrorModal}
+                handleClose={handleCloseErrorModal}
+                errorMessage={error || ''}
+            />
+        </>
+    );
+};
+
+export default LoginForm;
+
+========================================================
+Arquivo: components/validation/old/LoginSection.tsx
+----------------------
+import React from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
+import LoginCard from './LoginCard';
+
+const LoginSection: React.FC = () => {
+    return (
+        <section className="vh-100 gradient-custom">
+            <Container className="py-5 h-100">
+                <Row className="d-flex justify-content-center align-items-center h-100">
+                    <Col xs={12} md={8} lg={6} xl={5}>
+                        <LoginCard />
+                    </Col>
+                </Row>
+            </Container>
+        </section>
+    );
+};
+
+export default LoginSection;
+
+========================================================
+Arquivo: components/validation/old/SocialMediaLinks.tsx
+----------------------
+import React from 'react';
+
+const SocialMediaLinks: React.FC = () => {
+    return (
+        <div className="d-flex justify-content-center text-center mt-4 pt-1">
+            <a href="#!" className="text-white">
+                <i className="fab fa-facebook-f fa-lg"></i>
+            </a>
+            <a href="#!" className="text-white mx-4 px-2">
+                <i className="fab fa-twitter fa-lg"></i>
+            </a>
+            <a href="#!" className="text-white">
+                <i className="fab fa-google fa-lg"></i>
+            </a>
+        </div>
+    );
+};
+
+export default SocialMediaLinks;
+========================================================
+Pasta: components/welcome
+----------------------
+Arquivo: components/welcome/RoleButton.tsx
+----------------------
+// src/components/RoleButton.tsx
+
+import React from 'react';
+import { Button } from 'react-bootstrap';
+
+interface RoleButtonProps {
+  role: 'admin' | 'user' | null;
+  allowedRoles: ('admin' | 'user')[];
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+const RoleButton: React.FC<RoleButtonProps> = ({ role, allowedRoles, onClick, children }) => {
+  // Renderiza o botão apenas se o papel do usuário estiver na lista de papéis permitidos
+  if (!allowedRoles.includes(role as 'admin' | 'user')) {
+    return null;
+  }
+
+  return (
+    <Button onClick={onClick} variant="primary" className="w-100 mb-3">
+      {children}
+    </Button>
+  );
+};
+
+export default RoleButton;
+
+========================================================
+Pasta: config
+----------------------
+Arquivo: config/routes.tsx
+----------------------
+// src/config/routes.ts
+
+import WelcomePage from "components/pages/WelcomePage";
+import AdminRegisterPage from "components/pages/AdminRegisterPage";
+import ClassificationPage from "components/pages/ClassificationPage";
+import ValidationPage from "components/pages/ValidationPage";
+import ImageUploadPage from "components/pages/ImageUploadPage";
+import SignInPage from "components/pages/SignInPage";
+import HomePage from "components/pages/HomePage";
+import React, { ReactNode } from "react";
+import NewValidationPage from "components/validation/new/pages/NewValidationPage";
+
+interface RouteConfig {
+  path: string;
+  name: string;
+  component: ReactNode;
+  roles: ("admin" | "user")[];
+  showInSidebar: boolean;
+  showInWelcomePage: boolean;
+}
+
+const routes: RouteConfig[] = [
+  {
+    path: '/welcome',
+    name: 'Bem-vindo',
+    component: <WelcomePage />,
+    roles: ['admin', 'user'], // Protegida por roles
+    showInWelcomePage: false, // Reintroduzido
+    showInSidebar: true,
+  },
+  {
+    path: '/classification',
+    name: 'Classificar',
+    component: <ClassificationPage />,
+    roles: ['admin', 'user'], // Protegida por roles
+    showInWelcomePage: true, // Reintroduzido
+    showInSidebar: true,
+  },
+  {
+    path: '/admin-register',
+    name: 'Registrar Usuários',
+    component: <AdminRegisterPage />,
+    roles: ['admin'], // Protegida por roles
+    showInWelcomePage: true, // Reintroduzido
+    showInSidebar: true,
+  },
+  {
+    path: '/validation',
+    name: 'Validar Imagens',
+    component: <NewValidationPage />,
+    roles: ['admin'], // Protegida por roles
+    showInWelcomePage: true, // Reintroduzido
+    showInSidebar: true,
+  },
+  {
+    path: '/image-upload',
+    name: 'Upload de Imagens',
+    component: <ImageUploadPage />,
+    roles: ['admin'], // Protegida por roles
+    showInWelcomePage: true, // Reintroduzido
+    showInSidebar: true,
+  },
+  {
+    path: '/sign-in',
+    name: 'Login',
+    component: <SignInPage />,
+    roles: [], // Sem proteção, qualquer um pode acessar
+    showInWelcomePage: false, // Reintroduzido
+    showInSidebar: false,
+  },
+  {
+    path: '/',
+    name: 'Página Inicial',
+    component: <HomePage />,
+    roles: [], // Sem proteção
+    showInWelcomePage: false, // Reintroduzido
+    showInSidebar: false,
+  },
+  {
+    path: '/forbidden',
+    name: 'Acesso Negado',
+    component: <div>Você não tem permissão para acessar esta página, contate um Administrador</div>,
+    roles: ["user"], // Sem proteção
+    showInWelcomePage: false, // Reintroduzido
+    showInSidebar: false,
+  }
+];
+
+export default routes;
+
+
+
+// // src/config/routes.ts
+
+// import PageLayout from "components/layouts/PageLayout";
+// import AdminRegisterPage from "components/pages/AdminRegisterPage";
+// import ClassificationPage from "components/pages/ClassificationPage";
+// import HomePage from "components/pages/HomePage";
+// import ImageUploadPage from "components/pages/ImageUploadPage";
+// import SignInPage from "components/pages/SignInPage";
+// import ValidationPage from "components/pages/ValidationPage";
+// import WelcomePage from "components/pages/WelcomePage";
+// import ProtectedRoute from "components/routes/ProtectedRoute";
+// import { AllowedRolesContext, AllowedRolesProvider } from "contexts/AllowedRolesContext";
+// import React, { ReactNode } from "react";
+
+// export interface RouteConfig {
+//   path: string;
+//   name: string;
+//   component: ReactNode; // Componente da página
+//   // allowedRoles: ('admin' | 'user')[];
+//   showInSidebar?: boolean;
+//   showInWelcomePage?: boolean;
+// }
+
+// /***
+
+//      Se a rota usar o layout, envolve o componente no layout e no ProtectedRoute
+//       <PageLayout>
+//         <ProtectedRoute allowedRoles={route.allowedRoles}>
+//           <route.component /> 
+//           </ProtectedRoute>
+//           </PageLayout>
+//         ) : (
+//           // Se a rota não usar layout, apenas aplica o ProtectedRoute
+//           <ProtectedRoute allowedRoles={route.allowedRoles}>
+//             <route.component /> 
+//           </ProtectedRoute>
+//         ),
+// */
+
+// const routes: RouteConfig[] = [
+//   {
+//     path: '/welcome',
+//     name: 'Bem-vindo',
+//     // component: <WelcomePage />,
+//     // allowedRoles: ['admin', 'user'],
+//     component: 
+//     <AllowedRolesProvider roles={['admin', 'user']}>
+//       <PageLayout>
+//         <ProtectedRoute >
+//           <WelcomePage /> 
+//         </ProtectedRoute>
+//       </PageLayout>
+//     </AllowedRolesProvider>,
+//     showInWelcomePage: false,
+//     showInSidebar: true,
+//   },
+//   {
+//     path: '/classification',
+//     name: 'Classificar',
+//     // component: <ClassificationPage />,
+//     component: 
+
+//     <AllowedRolesProvider roles={['admin', 'user']}>
+//       <PageLayout>
+//         <ProtectedRoute >
+//           <ClassificationPage /> 
+//         </ProtectedRoute>
+//       </PageLayout>
+//     </AllowedRolesProvider>
+      
+//     ,
+//     showInWelcomePage: true,
+//     showInSidebar: true,
+//   },
+//   {
+//     path: '/admin-register',
+//     name: 'Registrar Usuários',
+//     //component: AdminRegisterPage,
+//     // component: <AdminRegisterPage />,
+//     // allowedRoles: ['admin'],
+//     component:
+//     <AllowedRolesProvider roles={['admin']}>
+//       <PageLayout>
+//         <ProtectedRoute >
+//           <AdminRegisterPage /> 
+//         </ProtectedRoute>
+//       </PageLayout>
+//     </AllowedRolesProvider>,
+//     showInWelcomePage: true,
+//     showInSidebar: true,
+//   },
+//   {
+//     path: '/validation',
+//     name: 'Validar Imagens',
+//     // component: ValidationPage,
+//     // component: <ValidationPage />,
+//     // allowedRoles: ['admin'],
+//     component:
+//     <AllowedRolesProvider roles={['admin']}>
+//       <PageLayout>
+//         <ProtectedRoute >
+//           <ValidationPage /> 
+//         </ProtectedRoute>
+//       </PageLayout>
+//     </AllowedRolesProvider>,
+//     showInWelcomePage: true,
+//     showInSidebar: true,
+//   },
+//   {
+//     path: '/image-upload',
+//     name: 'Upload de Imagens',
+//     // component: ImageUploadPage,
+//     // component: <ImageUploadPage />,
+//     // allowedRoles: ['admin'],
+//     component:
+//     <AllowedRolesProvider roles={['admin']}>
+//       <PageLayout>
+//         <ProtectedRoute >
+//           <ImageUploadPage /> 
+//         </ProtectedRoute>
+//       </PageLayout>
+//     </AllowedRolesProvider>,
+//     showInWelcomePage: true,
+//     showInSidebar: true,
+//   },
+//   {
+//     path: '/forbidden',
+//     name: 'Acesso Negado',
+//     // component: () => <div>Você não tem permissão para acessar esta página</div>,
+//     // component: <div>Você não tem permissão para acessar esta página</div>,
+//     // allowedRoles: [], // Página acessível para exibição de erro
+//     component: <div>Você não tem permissão para acessar esta página</div>,
+//     showInWelcomePage: false,
+//     showInSidebar: false,
+//   },
+//   {
+//     path: '/sign-in',
+//     name: 'Login',
+//     // component: SignInPage,
+//     // component: <SignInPage />,
+//     // allowedRoles: [], // Qualquer um pode acessar
+//     component: <SignInPage />,
+//     showInWelcomePage: false,
+//     showInSidebar: false,
+//   },
+//   {
+//     path: '/',
+//     name: 'Página Inicial',
+//     // component: HomePage,
+//     // component: <HomePage />,
+//     // allowedRoles: [],
+//     component: <HomePage />,
+//     showInWelcomePage: false,
+//     showInSidebar: false,
+//   },
+// ];
+
+// export default routes;
+
+========================================================
+Pasta: contexts
+----------------------
+Arquivo: contexts/AllowedRolesContext.tsx
+----------------------
+// src/contexts/AuthContext.tsx
+
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren, useCallback, useMemo } from 'react';
+import Cookies from 'js-cookie';
+
+
+
+// Definição do contexto de autenticação
+interface AllowedRolesContextType {
+  allowedRoles: ('admin' | 'user')[];
+}
+
+// Criação do contexto
+export const AllowedRolesContext = createContext<AllowedRolesContextType | undefined>(undefined);
+
+interface AllowedRolesProviderProps extends PropsWithChildren {
+  roles: ('admin' | 'user')[];
+}
+
+export const AllowedRolesProvider: React.FC<AllowedRolesProviderProps> = ({ children, roles }) => {
+ 
+   
+  const [allowedRoles, setAllowedRoles] = useState<('admin' | 'user')[]>(roles);
+
+  return (
+    <AllowedRolesContext.Provider value={{ allowedRoles }}>
+      {children}
+    </AllowedRolesContext.Provider>
+  );
+};
+
+// Hook para usar o contexto de autenticação de forma mais simples
+export const useAllowedRoles = (): AllowedRolesContextType => {
+  const context = useContext(AllowedRolesContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+========================================================
+Arquivo: contexts/AuthContext.tsx
+----------------------
+import React, { createContext, useState, useEffect, useContext, PropsWithChildren, useCallback, useMemo } from 'react';
+import Cookies from 'js-cookie';
+
+// Definição da interface do usuário
+interface User {
+  username: string;
+  user_id: string;
+  session_token: string;
+  role: 'admin' | 'user';
+}
+
+// Definição do contexto de autenticação
+interface AuthContextType {
+  user: User | null;
+  login: (user: User) => void;
+  logout: () => void;
+  isAuthenticated: boolean;
+}
+
+// Função para carregar o estado inicial do usuário dos cookies
+const loadUserFromCookies = (): User | null => {
+  const session_token = Cookies.get('session_token');
+  const username = Cookies.get('username');
+  const user_id = Cookies.get('user_id');
+  const role = Cookies.get('user_role') as 'admin' | 'user' | null;
+
+  if (session_token && username && user_id && role) {
+    return {
+      username,
+      user_id,
+      session_token,
+      role,
+    };
+  }
+
+  return null;
+};
+
+// Criação do contexto
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  // Inicializa o estado diretamente com os cookies
+  const [user, setUser] = useState<User | null>(loadUserFromCookies);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!user);
+
+  useEffect(() => {
+    // Atualiza o estado se os cookies mudarem
+    if (user) {
+      setIsAuthenticated(true);
+    }
+  }, [user]);
+
+  const login = useCallback((user: User) => {
+    // Armazena os dados do usuário nos cookies
+    Cookies.set('session_token', user.session_token);
+    Cookies.set('username', user.username);
+    Cookies.set('user_id', user.user_id);
+    Cookies.set('user_role', user.role);
+
+    // Define o estado do usuário
+    setUser(user);
+    setIsAuthenticated(true);
+  }, []);
+
+  const logout = useCallback(() => {
+    // Remove os cookies
+    Cookies.remove('session_token');
+    Cookies.remove('username');
+    Cookies.remove('user_id');
+    Cookies.remove('user_role');
+
+    // Limpa o estado do usuário
+    setUser(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, login, logout, isAuthenticated }),
+    [user, login, logout, isAuthenticated]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Hook para usar o contexto de autenticação de forma mais simples
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+========================================================
+Arquivo: contexts/DrawingContext.tsx
+----------------------
+// DrawingContext.tsx
+import React, { createContext, useContext, useReducer } from "react";
+import { ToolContext, ToolContextValue } from "./ToolContext";
+
+export interface Point {
+	x: number;
+	y: number;
+}
+
+export interface Polyline {
+	type: "polyline";
+	points: Point[];
+}
+
+export interface BoundingBox {
+	type: "boundingBox";
+	startPoint: Point;
+	endPoint: Point;
+}
+
+export type GeometryItem = Polyline | BoundingBox;
+
+export type PreviewPolyline = {
+	type: "polyline";
+	points: Point[];
+	currentMovingPoint: Point | null;
+	currentMovingPointIndex: number | null;
+	closedGeometry: boolean;
+};
+
+export type PreviewBoundingBox = {
+	type: "boundingBox";
+	startPoint: Point;
+	endPoint: Point;
+	hasMoved: boolean;
+};
+
+export type DrawingState = {
+	previewItem: PreviewBoundingBox | PreviewPolyline | null;
+	items: GeometryItem[];
+	isDrawing: boolean;
+};
+
+export type Action =
+	| { type: "POINTER_DOWN"; point: Point; selectedTool: string | null }
+	| { type: "POINTER_DRAG"; point: Point }
+	| { type: "POINTER_UP"; point: Point };
+
+const initialDrawingState: DrawingState = {
+	previewItem: null,
+	items: [],
+	isDrawing: false
+};
+
+const DrawingReducer = (
+	drawingState: DrawingState,
+	action: Action
+): DrawingState => {
+	// const toolContext = useContext(ToolContext);
+	// if (!toolContext) {
+	//   throw new Error("ToolContext must be used within a ToolProvider");
+	// }
+	// const { state: toolState } = toolContext;
+
+	console.log(action, drawingState);
+
+	switch (action.type) {
+		case "POINTER_DOWN":
+			if (action.selectedTool === "createPolyLine") {
+				if (drawingState.previewItem === null) {
+					return {
+						...drawingState,
+						isDrawing: true,
+						previewItem: {
+							type: "polyline",
+							currentMovingPoint: action.point,
+							currentMovingPointIndex: 0,
+							points: [],
+							closedGeometry: false
+						} as PreviewPolyline
+					};
+				} else {
+					if (drawingState.previewItem.type === "polyline") {
+						const index = drawingState.previewItem.points.length;
+						return {
+							...drawingState,
+							previewItem: {
+								...drawingState.previewItem,
+								currentMovingPoint: action.point,
+								currentMovingPointIndex: index
+							}
+						};
+					}
+				}
+			}
+			if (action.selectedTool === "createBoundingBox") {
+				return {
+					...drawingState,
+					isDrawing: true,
+					previewItem: {
+						type: "boundingBox",
+						startPoint: action.point,
+						endPoint: action.point,
+						hasMoved: false
+					} as PreviewBoundingBox
+				};
+			}
+			return drawingState;
+
+		case "POINTER_DRAG":
+			if (drawingState.previewItem?.type === "polyline") {
+				const newPreviewItem = {
+					...drawingState.previewItem,
+					currentMovingPoint: action.point
+				};
+				return {
+					...drawingState,
+					previewItem: newPreviewItem
+				};
+			}
+			if (drawingState.previewItem?.type === "boundingBox") {
+				const newPreviewItem = {
+					...drawingState.previewItem,
+					endPoint: action.point,
+					hasMoved: true
+				};
+				return {
+					...drawingState,
+					previewItem: newPreviewItem
+				};
+			}
+			return drawingState;
+
+		case "POINTER_UP":
+			if (drawingState.previewItem?.type === "polyline") {
+				if (drawingState.previewItem.currentMovingPointIndex !== null) {
+					const newPreviewItem = {
+						...drawingState.previewItem,
+						currentMovingPoint: null,
+						currentMovingPointIndex: null,
+						points: [
+							...drawingState.previewItem.points.slice(
+								0,
+								drawingState.previewItem.currentMovingPointIndex
+							),
+							action.point,
+							...drawingState.previewItem.points.slice(
+								drawingState.previewItem.currentMovingPointIndex
+							)
+						]
+					};
+					return {
+						...drawingState,
+						previewItem: newPreviewItem
+					};
+				}
+			}
+			if (drawingState.previewItem?.type === "boundingBox") {
+				if (drawingState.previewItem.hasMoved) {
+					console.log(
+						"POINTER_UP final",
+						drawingState.previewItem,
+						{
+							...drawingState,
+							isDrawing: false,
+							items: [
+								...drawingState.items,
+								{
+									type: "boundingBox",
+									startPoint:
+										drawingState.previewItem.startPoint,
+									endPoint: action.point
+								} as BoundingBox
+							],
+							previewItem: null
+						},
+						action
+					);
+					return {
+						...drawingState,
+						isDrawing: false,
+						items: [
+							...drawingState.items,
+							{
+								type: "boundingBox",
+								startPoint: drawingState.previewItem.startPoint,
+								endPoint: action.point
+							} as BoundingBox
+						],
+						previewItem: null
+					};
+				} else {
+					return {
+						...drawingState,
+						isDrawing: false,
+						previewItem: null
+					};
+				}
+			}
+			return drawingState;
+
+		default:
+			return drawingState;
+	}
+};
+
+export const DrawingContext = createContext<
+	{ state: DrawingState; dispatch: React.Dispatch<any> } | undefined
+>(undefined);
+
+export const DrawingProvider: React.FC<{ children: React.ReactNode }> = ({
+	children
+}) => {
+	const [state, dispatch] = useReducer(DrawingReducer, initialDrawingState);
+
+	return (
+		<DrawingContext.Provider value={{ state, dispatch }}>
+			{children}
+		</DrawingContext.Provider>
+	);
+};
+
+========================================================
+Arquivo: contexts/InteractionStateContext.tsx
+----------------------
+// import React, { createContext, useContext, useEffect } from 'react';
+// import { ToolContext } from './ToolContext';
+// import { DrawingContext } from './DrawingContext';
+
+// export const InteractionStateContext = createContext<React.ReactNode | undefined>(undefined);
+
+// export const InteractionStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+//   const toolContext = useContext(ToolContext);
+//   const drawingContext = useContext(DrawingContext);
+
+//   if (!toolContext || !drawingContext) {
+//     throw new Error('InteractionStateProvider must be used within ToolProvider and DrawingProvider');
+//   }
+
+//   const { state: toolState } = toolContext;
+//   const { state: drawingState, dispatch: drawingDispatch } = drawingContext;
+
+//   useEffect(() => {
+//     if (drawingState.isDrawing && toolState.selectedTool !== 'draw') {
+//       drawingDispatch({ type: 'STOP_DRAWING' });
+//     }
+//   }, [toolState, drawingState, drawingDispatch]);
+
+//   return (
+//     <InteractionStateContext.Provider value={null}>
+//       {children}
+//     </InteractionStateContext.Provider>
+//   );
+// };
+
+========================================================
+Arquivo: contexts/ToolContext.tsx
+----------------------
+// ToolContext.tsx
+import React, { createContext, useReducer } from "react";
+
+type ToolState = {
+	selectedTool: string | null;
+};
+
+const initialState: ToolState = { selectedTool: null };
+
+const ToolReducer = (
+	state: ToolState,
+	action: { type: string; payload: string }
+): ToolState => {
+	switch (action.type) {
+		case "SET_TOOL":
+			return { ...state, selectedTool: action.payload };
+		default:
+			return state;
+	}
+};
+
+export interface ToolContextValue {
+	state: ToolState;
+	dispatch: React.Dispatch<any>;
+}
+
+export const ToolContext = createContext<ToolContextValue | undefined>(
+	undefined
+);
+
+export const ToolProvider: React.FC<{ children: React.ReactNode }> = ({
+	children
+}) => {
+	const [state, dispatch] = useReducer(ToolReducer, initialState);
+
+	return (
+		<ToolContext.Provider value={{ state, dispatch }}>
+			{children}
+		</ToolContext.Provider>
+	);
+};
+
+========================================================
+Arquivo: declarations.d.ts
+----------------------
+declare module "*.png" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpg" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpeg" {
+	const value: string;
+	export default value;
+}
+declare module "*.gif" {
+	const value: string;
+	export default value;
+}
+declare module "*.svg" {
+	const value: string;
+	export default value;
+}
+declare module "*.webp" {
+	const value: string;
+	export default value;
+}
+
+========================================================
+Pasta: hooks
+----------------------
+Arquivo: hooks/helpers.ts
+----------------------
+import { Point } from "contexts/DrawingContext";
+
+export const calculateMidPoint = (pointA: Point, pointB: Point): Point => {
+	return {
+		x: (pointA.x + pointB.x) / 2,
+		y: (pointA.y + pointB.y) / 2
+	};
+};
+
+export const handleInsertPoint = (
+	points: Point[],
+	index: number,
+	newPoint: Point
+): Point[] => {
+	const newPoints = [...points];
+	newPoints.splice(index, 0, newPoint);
+	return newPoints;
+};
+
+========================================================
+Arquivo: hooks/types.ts
+----------------------
+[ARQUIVO VAZIO]
+
+========================================================
+Arquivo: hooks/useDimensions.ts
+----------------------
+import { useState, useEffect } from "react";
+
+const useDimensions = (
+	containerRef: React.RefObject<HTMLDivElement>,
+	isOpen: boolean
+) => {
+	const [dimensions, setDimensions] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight
+	});
+
+	useEffect(() => {
+		const handleResize = () => {
+			if (containerRef.current) {
+				setDimensions({
+					width: containerRef.current.offsetWidth,
+					height: containerRef.current.offsetHeight
+				});
+			}
+		};
+
+		window.addEventListener("resize", handleResize);
+		handleResize();
+
+		return () => {
+			window.removeEventListener("resize", handleResize);
+		};
+	}, [isOpen, containerRef]);
+
+	return dimensions;
+};
+
+export default useDimensions;
+
+========================================================
+Arquivo: index.tsx
+----------------------
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import { QueryClient, QueryClientProvider } from 'react-query';
+import "bootstrap/dist/css/bootstrap.min.css";
+import { AuthProvider } from "contexts/AuthContext";
+
+// Crie uma instância de QueryClient
+const queryClient = new QueryClient();
+
+const container = document.getElementById("root");
+const root = createRoot(container!);
+root.render(
+  <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </AuthProvider>
+);
+
+========================================================
+Arquivo: listar.sh
+----------------------
+#!/bin/bash
+
+# Defina o diretório de trabalho como o diretório atual, ou passe um diretório como argumento
+WORK_DIR="${1:-.}"
+OUTPUT_FILE="output.txt"
+
+# Limpa o arquivo de saída
+echo "Conteúdo dos arquivos no diretório '$WORK_DIR':" > "$OUTPUT_FILE"
+echo "========================================================" >> "$OUTPUT_FILE"
+
+# Função para listar arquivos e pastas recursivamente
+listar_arquivos() {
+  local dir="$1"
+  local prefix="$2"
+  local arquivos_encontrados=0
+
+  # Lista o conteúdo do diretório
+  for entry in "$dir"/*; do
+    if [ -f "$entry" ]; then
+      arquivos_encontrados=1
+      relative_path="${entry#$WORK_DIR/}"
+      echo "Arquivo: $relative_path" >> "$OUTPUT_FILE"
+      echo "----------------------" >> "$OUTPUT_FILE"
+
+      # Verifica se o arquivo está vazio
+      if [ -s "$entry" ]; then
+        cat "$entry" >> "$OUTPUT_FILE"
+      else
+        echo "[ARQUIVO VAZIO]" >> "$OUTPUT_FILE"
+      fi
+
+      echo "" >> "$OUTPUT_FILE"
+      echo "========================================================" >> "$OUTPUT_FILE"
+    elif [ -d "$entry" ]; then
+      arquivos_encontrados=1
+      echo "Pasta: ${entry#$WORK_DIR/}" >> "$OUTPUT_FILE"
+      echo "----------------------" >> "$OUTPUT_FILE"
+      
+      # Se o diretório estiver vazio
+      if [ -z "$(ls -A "$entry")" ]; then
+        echo "[PASTA VAZIA]" >> "$OUTPUT_FILE"
+        echo "========================================================" >> "$OUTPUT_FILE"
+      else
+        listar_arquivos "$entry"
+      fi
+    fi
+  done
+
+  if [ $arquivos_encontrados -eq 0 ]; then
+    echo "[PASTA VAZIA]" >> "$OUTPUT_FILE"
+  fi
+}
+
+# Inicia a função recursiva
+listar_arquivos "$WORK_DIR"
+
+echo "Conteúdo salvo em '$OUTPUT_FILE'."
+
+========================================================
+Arquivo: output.txt
+----------------------
+
+========================================================
+Arquivo: react-app-env.d.ts
+----------------------
+/// <reference types="react-scripts" />
+
+========================================================
+Pasta: styles
+----------------------
+Arquivo: styles/global.css
+----------------------
+[ARQUIVO VAZIO]
+
+========================================================

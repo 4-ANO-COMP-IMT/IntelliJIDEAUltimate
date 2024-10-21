@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // ou "ES2015"
+    "module": "CommonJS", // ou outro módulo compatível como "ESNext"
+    "declaration": true, // Importante para gerar arquivos .d.ts
+    "declarationMap": true, // Opcional, mas útil para debugging
+    "outDir": "./dist", // Diretório de saída para arquivos compilados
+    "strict": true, // Ativa todas as verificações estritas
+    "esModuleInterop": true, // Facilita a importação de módulos CommonJS
+    "skipLibCheck": true, // Ignora a checagem de tipo de arquivos .d.ts externos
+    "forceConsistentCasingInFileNames": true // Verifica o uso consistente de maiúsculas e minúsculas em imports
+  },
+  "include": ["src", "../session-utility/src/model", "../session-utility/src/publishers", "../session-utility/src/publisher.ts", "../session-utility/src/session.ts"], // Inclui todos os arquivos TypeScript da pasta src
+  "exclude": ["node_modules", "dist"] // Exclui as pastas node_modules e dist
+}

@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "https://www.updatecli.io/schema/latest/compose/config.json": "file:///home/felipe/projeto_programacao_bossini/docker-compose.yml"
+    }
+}

@@ -1,0 +1,1544 @@
+Conteúdo dos arquivos em './src/':
+===========================================
+Arquivo: App.tsx
+import React from "react";
+import Header from "./components/Header/Header";
+import Body from "./components/Body/Body";
+
+const App: React.FC = () => {
+	return (
+		<>
+			<Header />			
+			<Body />
+		</>
+	);
+};
+
+export default App;
+
+
+Arquivo: components/Body/Body.tsx
+import React, { useState } from "react";
+import { Container, Tab, Tabs } from "react-bootstrap";
+import MainTab from "./Tabs/MainTab/MainTab";
+import FilterTab from "./Tabs/FilterTab/FilterTab";
+
+const Body: React.FC = () => {
+	const [key, setKey] = useState<string>("main");
+
+	return (
+		<div className="container" style={{ marginTop: "5px" }}>
+			<Tabs
+				defaultActiveKey="main"
+				id="uncontrolled-tab-example"
+				className="mb-3"
+				activeKey={key}
+				onSelect={(k: string | null) => setKey(k || "")}
+			>
+				<Tab eventKey="main" title="Main">
+					<MainTab isOpen={key === "main"} />
+				</Tab>
+				<Tab eventKey="filter" title="Filter">
+					<FilterTab isOpen={key === "filter"} />
+				</Tab>
+			</Tabs>
+		</div>
+	);
+};
+
+export default Body;
+
+
+Arquivo: components/Body/Tabs/FilterTab/ClassFilter.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const classOptions = [
+	{ value: 1, label: "Classe 1" },
+	{ value: 2, label: "Classe 2" },
+	{ value: 3, label: "Classe 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const ClassFilter: React.FC = () => {
+	const [selectedClasses, setSelectedClasses] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="classFilter">
+			<Form.Label>Classe</Form.Label>
+			<Select
+				isMulti
+				options={classOptions}
+				value={selectedClasses}
+				onChange={(newValue, actionMeta) =>
+					setSelectedClasses(Array.from(newValue))
+				}
+				placeholder="Selecione as classes"
+			/>
+		</Form.Group>
+	);
+};
+
+export default ClassFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/DateFilter.tsx
+import React, { useState } from "react";
+import { Form, Row, Col } from "react-bootstrap";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const DateFilter: React.FC = () => {
+	const [startDate, setStartDate] = useState<Date | null>(null);
+	const [endDate, setEndDate] = useState<Date | null>(null);
+
+	return (
+		<Form.Group controlId="dateFilter">
+			<Form.Label>Data</Form.Label>
+			<Row>
+				<Col>
+					<Form.Label>Início</Form.Label>
+					<DatePicker
+						selected={startDate}
+						onChange={(date) => setStartDate(date)}
+						className="form-control"
+						placeholderText="Data de Início"
+					/>
+				</Col>
+				<Col>
+					<Form.Label>Fim</Form.Label>
+					<DatePicker
+						selected={endDate}
+						onChange={(date) => setEndDate(date)}
+						className="form-control"
+						placeholderText="Data de Fim"
+					/>
+				</Col>
+			</Row>
+		</Form.Group>
+	);
+};
+
+export default DateFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/FilterTab.tsx
+import React from "react";
+import { Card, Form, Tab } from "react-bootstrap";
+import RegionFilter from "./RegionMap/RegionFilter";
+import DateFilter from "./DateFilter";
+import ClassFilter from "./ClassFilter";
+import FlagFilter from "./FlagFilter";
+import TagsFilter from "./TagsFilter";
+import TypeFilter from "./TypeFilter";
+
+const FilterTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	return (
+		<>
+			<div id="example-collapse-text">
+				<Card>
+					<Card.Body>
+						<Form>
+							<RegionFilter isOpen={isOpen} />
+							<DateFilter />
+							<ClassFilter />
+							<TagsFilter />
+							<FlagFilter />
+							<TypeFilter />
+						</Form>
+					</Card.Body>
+				</Card>
+			</div>
+		</>
+	);
+};
+
+export default FilterTab;
+
+
+Arquivo: components/Body/Tabs/FilterTab/FlagFilter.tsx
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const FlagFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="flagFilter">
+			<Form.Label>Flag</Form.Label>
+			<Form.Check type="checkbox" label="Ativar flag" />
+		</Form.Group>
+	);
+};
+
+export default FlagFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/MapView.tsx
+import React, { useEffect } from "react";
+import {
+	MapContainer,
+	TileLayer,
+	Polygon,
+	Marker,
+	useMap
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+const MapView: React.FC<{
+	center: [number, number];
+	zoom: number;
+	selectedRegion: any[];
+	isPolygon: boolean;
+	isOpen: boolean;
+}> = ({ center, zoom, selectedRegion, isPolygon, isOpen }) => {
+	const MapEvents = () => {
+		const map = useMap();
+
+		useEffect(() => {
+			map.invalidateSize();
+		}, [isOpen]);
+
+		map.setView(center, zoom);
+		return null;
+	};
+
+	return (
+		<div style={{ height: "400px", width: "100%" }}>
+			<MapContainer
+				center={center}
+				zoom={zoom}
+				style={{ height: "100%", width: "100%" }}
+			>
+				<TileLayer
+					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+					attribution="&copy; OpenStreetMap contributors"
+				/>
+				{isPolygon ? (
+					<Polygon positions={selectedRegion} />
+				) : (
+					<Marker
+						position={center}
+						icon={L.icon({
+							iconUrl:
+								"https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+							iconSize: [25, 41],
+							iconAnchor: [12, 41]
+						})}
+					/>
+				)}
+				<MapEvents />
+			</MapContainer>
+		</div>
+	);
+};
+
+export default MapView;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/RegionFilter.tsx
+import React, { useState, useEffect } from "react";
+import { Row, Col, Card } from "react-bootstrap";
+import axios from "axios";
+import MapView from "./MapView";
+import SearchBar from "./SearchBar";
+import ResultList from "./ResultList";
+
+const RegionFilter: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+	const [selectedRegion, setSelectedRegion] = useState<any[]>([]);
+	const [center, setCenter] = useState<[number, number]>([0, 0]);
+	const [zoom, setZoom] = useState<number>(2);
+	const [isPolygon, setIsPolygon] = useState<boolean>(false);
+	const [loading, setLoading] = useState<boolean>(false);
+	const [foundPlaces, setFoundPlaces] = useState<any[]>([]);
+	const [selectedPlace, setSelectedPlace] = useState<any>(null);
+
+	useEffect(() => {
+		if (isOpen) {
+			setTimeout(() => {
+				window.dispatchEvent(new Event("resize"));
+			}, 100);
+		}
+	}, [isOpen]);
+
+	const handleSearch = async (placeName: string) => {
+		if (!placeName) return;
+
+		setLoading(true);
+		try {
+			const response = await axios.get(
+				`https://nominatim.openstreetmap.org/search`,
+				{
+					params: {
+						q: placeName,
+						format: "json",
+						polygon_geojson: 1
+					}
+				}
+			);
+
+			if (response.data.length > 0) {
+				setFoundPlaces(response.data);
+			} else {
+				alert("Local não encontrado");
+				setFoundPlaces([]);
+			}
+		} catch (error) {
+			console.error("Erro ao buscar o local:", error);
+			alert("Erro ao buscar o local");
+			setFoundPlaces([]);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const selectPlace = (place: any) => {
+		setSelectedPlace(place);
+		if (place.geojson && place.geojson.type === "Polygon") {
+			const coordinates = place.geojson.coordinates[0].map(
+				(coord: [number, number]) => ({
+					lat: coord[1],
+					lng: coord[0]
+				})
+			);
+			setSelectedRegion(coordinates);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(10);
+			setIsPolygon(true);
+		} else {
+			setSelectedRegion([]);
+			setCenter([parseFloat(place.lat), parseFloat(place.lon)]);
+			setZoom(15);
+			setIsPolygon(false);
+		}
+	};
+
+	return (
+		<Card className="mb-3">
+			<Card.Body>
+				<Row>
+					<Col md={8}>
+						<MapView
+							center={center}
+							zoom={zoom}
+							selectedRegion={selectedRegion}
+							isPolygon={isPolygon}
+							isOpen={isOpen}
+						/>
+					</Col>
+					<Col md={4}>
+						<SearchBar onSearch={handleSearch} loading={loading} />
+						<ResultList
+							places={foundPlaces}
+							selectedPlace={selectedPlace}
+							onSelectPlace={selectPlace}
+						/>
+					</Col>
+				</Row>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default RegionFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultItem.tsx
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+
+interface ResultItemProps {
+	place: any;
+	isSelected: boolean;
+	onSelect: () => void;
+}
+
+const ResultItem: React.FC<ResultItemProps> = ({
+	place,
+	isSelected,
+	onSelect
+}) => {
+	return (
+		<Card className="mb-2">
+			<Card.Body>
+				<Card.Title>{place.display_name.split(",")[0]}</Card.Title>
+				<Card.Text>{place.display_name}</Card.Text>
+				<Button
+					variant={isSelected ? "success" : "outline-primary"}
+					onClick={onSelect}
+				>
+					{isSelected ? "Selecionado" : "Selecionar"}
+				</Button>
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultItem;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/ResultList.tsx
+import React from "react";
+import ResultItem from "./ResultItem";
+import { Card } from "react-bootstrap";
+
+interface ResultListProps {
+	places: any[];
+	selectedPlace: any;
+	onSelectPlace: (place: any) => void;
+}
+
+const ResultList: React.FC<ResultListProps> = ({
+	places,
+	selectedPlace,
+	onSelectPlace
+}) => {
+	return (
+		<Card style={{ maxHeight: "400px", overflowY: "auto" }}>
+			<Card.Body>
+				{places.length === 0 ? (
+					<div className="text-center text-muted">
+						Nenhum resultado encontrado. Digite o nome de um lugar
+						para buscar.
+					</div>
+				) : (
+					places.map((place, index) => (
+						<ResultItem
+							key={index}
+							place={place}
+							isSelected={
+								selectedPlace &&
+								selectedPlace.place_id === place.place_id
+							}
+							onSelect={() => onSelectPlace(place)}
+						/>
+					))
+				)}
+				{selectedPlace === null && places.length > 0 && (
+					<div className="text-center text-muted mt-2">
+						Caso não tenha selecionado um lugar, as imagens de todos
+						os lugares aparecerão aqui.
+					</div>
+				)}
+			</Card.Body>
+		</Card>
+	);
+};
+
+export default ResultList;
+
+
+Arquivo: components/Body/Tabs/FilterTab/RegionMap/SearchBar.tsx
+import React, { useState } from "react";
+import { Form, Button, Spinner } from "react-bootstrap";
+
+interface SearchBarProps {
+	onSearch: (placeName: string) => void;
+	loading: boolean;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading }) => {
+	const [placeName, setPlaceName] = useState<string>("");
+
+	const handleSearch = () => {
+		onSearch(placeName);
+	};
+
+	return (
+		<Form.Group controlId="regionSearchBar">
+			<Form.Control
+				type="text"
+				placeholder="Nome do lugar (País, Estado, etc.)"
+				value={placeName}
+				onChange={(e) => setPlaceName(e.target.value)}
+				className="mb-2"
+			/>
+			<Button
+				variant="primary"
+				onClick={handleSearch}
+				className="mb-2"
+				disabled={loading}
+			>
+				{loading ? <Spinner animation="border" size="sm" /> : "Buscar"}
+			</Button>
+		</Form.Group>
+	);
+};
+
+export default SearchBar;
+
+
+Arquivo: components/Body/Tabs/FilterTab/TagsFilter.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import Select from "react-select";
+
+const tagOptions = [
+	{ value: "Tag1", label: "Tag 1" },
+	{ value: "Tag2", label: "Tag 2" },
+	{ value: "Tag3", label: "Tag 3" }
+	// Adicione mais opções conforme necessário
+];
+
+const TagsFilter: React.FC = () => {
+	const [selectedTags, setSelectedTags] = useState<any[]>([]);
+
+	return (
+		<Form.Group controlId="tagsFilter">
+			<Form.Label>Tags Especiais</Form.Label>
+			<Select
+				isMulti
+				options={tagOptions}
+				value={selectedTags}
+				onChange={(newValue: any, actionMeta: any) =>
+					setSelectedTags(newValue as any[])
+				}
+				placeholder="Digite as tags"
+			/>
+		</Form.Group>
+	);
+};
+
+export default TagsFilter;
+
+
+Arquivo: components/Body/Tabs/FilterTab/TypeFilter.tsx
+import React from "react";
+import { Form } from "react-bootstrap";
+
+const TypeFilter: React.FC = () => {
+	return (
+		<Form.Group controlId="typeFilter">
+			<Form.Label>Tipo</Form.Label>
+			<Form.Control type="text" placeholder="Digite o tipo" />
+		</Form.Group>
+	);
+};
+
+export default TypeFilter;
+
+
+Arquivo: components/Body/Tabs/MainTab/ButtonBar.tsx
+import React from "react";
+import { Button } from "react-bootstrap";
+
+const ButtonBar: React.FC = () => {
+	return (
+		<div className="button-bar d-flex justify-content-center">
+			<Button variant="primary">Button 1</Button>
+			<Button variant="secondary">Button 2</Button>
+			<Button variant="success">Button 3</Button>
+			{/* Add more buttons as needed */}
+		</div>
+	);
+};
+
+export default ButtonBar;
+
+
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassCard.tsx
+import React from "react";
+import { Card, Button } from "react-bootstrap";
+import { FaStar, FaRegStar, FaCheckCircle, FaCircle } from "react-icons/fa";
+
+interface ClassCardProps {
+    cls: { id: number; label: string };
+    isFavorite: boolean;
+    isSelected: boolean;
+    onFavoriteToggle: (id: number) => void;
+    onSelectToggle: (id: number) => void;
+}
+
+const ClassCard: React.FC<ClassCardProps> = ({
+    cls,
+    isFavorite,
+    isSelected,
+    onFavoriteToggle,
+    onSelectToggle
+}) => (
+    <Card key={cls.id} className="mb-2 w-100">
+        <Card.Body className="d-flex justify-content-between align-items-center">
+            <div className="d-flex flex-column">
+                <span>{cls.label}</span>
+                <small>ID: {cls.id}</small>
+            </div>
+            <div className="d-flex align-items-center">
+                <Button
+                    variant="link"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onFavoriteToggle(cls.id);
+                    }}
+                >
+                    {isFavorite ? <FaStar color="gold" /> : <FaRegStar />}
+                </Button>
+                <Button
+                    variant="link"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectToggle(cls.id);
+                    }}
+                >
+                    {isSelected ? <FaCheckCircle color="green" /> : <FaCircle color="gray" />}
+                </Button>
+            </div>
+        </Card.Body>
+    </Card>
+);
+
+export default ClassCard;
+
+
+Arquivo: components/Body/Tabs/MainTab/ClassToggleList/ClassToggleList.tsx
+import React, { useState } from "react";
+import { Form } from "react-bootstrap";
+import ClassCard from "./ClassCard";
+
+const classList = [
+    { id: 0, label: "Lombada" },
+    { id: 1, label: "Sarjetão" },
+    { id: 2, label: "Buraco" },
+    { id: 3, label: "Tampa de PV Adequada" },
+    { id: 4, label: "Tampa de PV com Defeito" },
+    { id: 5, label: "Recomposição Asfáltica" },
+    { id: 6, label: "Fissura Couro de Jacaré" },
+    { id: 7, label: "Fissura Transversal" },
+    { id: 8, label: "Fissura Longitudinal" },
+    { id: 9, label: "Boca de Lobo" },
+    { id: 10, label: "Sarjeta/Drenagem com Defeito" },
+    { id: 11, label: "Placa de Regulamentação" },
+    { id: 12, label: "Placa de Advertência" },
+    { id: 13, label: "Placa De Indicação" },
+    { id: 14, label: "Placa Educativa" },
+    { id: 15, label: "Placa Auxiliar" },
+    { id: 16, label: "Lixeira" },
+    { id: 17, label: "Hidrante" },
+    { id: 18, label: "Paralelepípedo" },
+    { id: 19, label: "Boca de Leão" },
+    { id: 20, label: "Sombra" },
+    { id: 21, label: "Tachão" },
+    { id: 22, label: "N/A" },
+    { id: 23, label: "Sinalização Horizontal" },
+    { id: 24, label: "Placa" },
+    { id: 25, label: "Fissura" },
+    { id: 26, label: "Tampa de PV" },
+    { id: 27, label: "Boca de Lobo Adequada" },
+    { id: 28, label: "Boca de Lobo Inadequada" },
+    { id: 29, label: "Sarjetão Adequado" },
+    { id: 30, label: "Sarjetão Inadequado" },
+    { id: 31, label: "Buraco Profundo" },
+    { id: 32, label: "Buraco Superficial" },
+    { id: 33, label: "Entulho" },
+    { id: 34, label: "Faixa de Pedestre" },
+    { id: 35, label: "Poste" },
+    { id: 36, label: "Lixeira Adequada" },
+    { id: 37, label: "Lixeira Inadequada" },
+    { id: 38, label: "Lixeira Transbordando" },
+    { id: 39, label: "Galhardete" },
+    { id: 40, label: "Saco de Varrição" },
+    { id: 41, label: "Sarjeta" },
+    { id: 42, label: "Tacha Refletiva" },
+    { id: 43, label: "Trinca Selada" },
+    { id: 44, label: "Defensa Metálica" },
+    { id: 45, label: "Mato Baixo" },
+    { id: 46, label: "Mato Alto" },
+    { id: 49, label: "Grama na Sarjeta" },
+    { id: 50, label: "Árvore" },
+    { id: 51, label: "Rua" },
+    { id: 52, label: "Calçada" },
+    { id: 53, label: "Canteiro" },
+    { id: 54, label: "Partes do Carro" },
+    { id: 55, label: "Reflexo" },
+    { id: 56, label: "Fundo" },
+    { id: 57, label: "Background" },
+    { id: 80, label: "Marco Vertical" },
+    { id: 81, label: "Válvula Gás" },
+    { id: 82, label: "Poste ERP" },
+    { id: 999002, label: "Árvores" },
+    { id: 999003, label: "Excesso de fio" }
+];
+
+const ClassToggleList: React.FC = () => {
+    const [selectedClass, setSelectedClass] = useState<number | null>(null);
+    const [favoriteClasses, setFavoriteClasses] = useState<number[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
+    const handleSelectClass = (id: number) => {
+        setSelectedClass(id);
+    };
+
+    const toggleFavorite = (id: number) => {
+        setFavoriteClasses((prev) =>
+            prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
+        );
+    };
+
+    const filteredClasses = classList.filter(
+        (cls) =>
+            cls.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            cls.id.toString().includes(searchTerm)
+    );
+
+    return (
+        <div style={{ height: "100%", overflowY: "auto", padding: "1rem", backgroundColor: "#f8f9fa" }}>
+            <Form.Control
+                type="text"
+                placeholder="Buscar classes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mb-2"
+            />
+            <h5>Favoritos</h5>
+            {favoriteClasses.length === 0 && <div>Nenhum favorito</div>}
+            <div className="mb-3">
+                {favoriteClasses.map((favId) => {
+                    const cls = classList.find((c) => c.id === favId);
+                    if (!cls) return null;
+                    return (
+                        <ClassCard
+                            key={cls.id}
+                            cls={cls}
+                            isFavorite={true}
+                            isSelected={selectedClass === cls.id}
+                            onFavoriteToggle={toggleFavorite}
+                            onSelectToggle={handleSelectClass}
+                        />
+                    );
+                })}
+            </div>
+
+            <h5>Prováveis</h5>
+            <div>Placeholder para Prováveis</div>
+
+            <h5>Todas as Classes</h5>
+            <div>
+                {filteredClasses.map((cls) => (
+                    <ClassCard
+                        key={cls.id}
+                        cls={cls}
+                        isFavorite={favoriteClasses.includes(cls.id)}
+                        isSelected={selectedClass === cls.id}
+                        onFavoriteToggle={toggleFavorite}
+                        onSelectToggle={handleSelectClass}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default ClassToggleList;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/BoundingBox.tsx
+import React, { useState } from "react";
+import { Rect, Circle } from "react-konva";
+import { KonvaEventObject } from "konva/lib/Node";
+
+interface RectProps {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+interface BoundingBoxProps {
+	initialRect: RectProps;
+}
+
+const BoundingBox: React.FC<BoundingBoxProps> = ({ initialRect }) => {
+	const [rectangle, setRectangle] = useState<RectProps>(initialRect);
+
+	const handleDragMove = (e: KonvaEventObject<DragEvent>, index: number) => {
+		const newRect = { ...rectangle };
+		if (index === 0) {
+			newRect.x = e.target.x();
+			newRect.y = e.target.y();
+		} else if (index === 1) {
+			newRect.width = e.target.x() - newRect.x;
+			newRect.height = e.target.y() - newRect.y;
+		}
+		setRectangle(newRect);
+	};
+
+	const handleDragEnd = () => {};
+
+	return (
+		<>
+			<Rect
+				x={rectangle.x}
+				y={rectangle.y}
+				width={rectangle.width}
+				height={rectangle.height}
+				stroke="blue"
+				strokeWidth={2}
+				draggable
+				onDragMove={(e) => handleDragMove(e, 0)}
+				onDragEnd={handleDragEnd}
+			/>
+			<Circle
+				x={rectangle.x}
+				y={rectangle.y}
+				radius={5}
+				fill="blue"
+				draggable
+				onDragMove={(e) => handleDragMove(e, 0)}
+				onDragEnd={handleDragEnd}
+			/>
+			<Circle
+				x={rectangle.x + rectangle.width}
+				y={rectangle.y + rectangle.height}
+				radius={5}
+				fill="red"
+				draggable
+				onDragMove={(e) => handleDragMove(e, 1)}
+				onDragEnd={handleDragEnd}
+			/>
+		</>
+	);
+};
+
+export default BoundingBox;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/Geometry.tsx
+import React from "react";
+import PolyLine from "./PolyLine";
+import BoundingBox from "./BoundingBox";
+
+interface GeometryProps {
+	type: "polyline" | "rectangle";
+	points?: { x: number; y: number }[];
+	initialRect?: { x: number; y: number; width: number; height: number };
+}
+
+const Geometry: React.FC<GeometryProps> = ({ type, points, initialRect }) => {
+	if (type === "polyline" && points) {
+		return <PolyLine points={points} />;
+	} else if (type === "rectangle" && initialRect) {
+		return <BoundingBox initialRect={initialRect} />;
+	}
+	return null;
+};
+
+export default Geometry;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Geometry/PolyLine.tsx
+import React, { useState } from "react";
+import { Line, Circle } from "react-konva";
+import { KonvaEventObject } from "konva/lib/Node";
+
+interface Point {
+	x: number;
+	y: number;
+}
+
+interface PolyLineProps {
+	points: Point[];
+}
+
+const PolyLine: React.FC<PolyLineProps> = ({ points }) => {
+	const [polyPoints, setPolyPoints] = useState<Point[]>(points);
+
+	const handleDragMove = (e: KonvaEventObject<DragEvent>, index: number) => {
+		const newPoints = [...polyPoints];
+		newPoints[index] = { x: e.target.x(), y: e.target.y() };
+		setPolyPoints(newPoints);
+	};
+
+	const handleDragEnd = () => {};
+
+	const handleInsertPoint = (index: number, newPoint: Point) => {
+		const newPoints = [...polyPoints];
+		newPoints.splice(index, 0, newPoint);
+		setPolyPoints(newPoints);
+	};
+
+	const calculateMidPoint = (pointA: Point, pointB: Point): Point => {
+		return {
+			x: (pointA.x + pointB.x) / 2,
+			y: (pointA.y + pointB.y) / 2
+		};
+	};
+
+	return (
+		<>
+			<Line
+				points={polyPoints.flatMap((p) => [p.x, p.y])}
+				stroke="red"
+				strokeWidth={2}
+			/>
+			{polyPoints.map((point, index) => (
+				<Circle
+					key={index}
+					x={point.x}
+					y={point.y}
+					radius={5}
+					fill="blue"
+					draggable
+					onDragMove={(e) => handleDragMove(e, index)}
+					onDragEnd={handleDragEnd}
+				/>
+			))}
+			{polyPoints.map((point, index) => {
+				if (index === polyPoints.length - 1) return null;
+				const midPoint = calculateMidPoint(
+					point,
+					polyPoints[index + 1]
+				);
+				return (
+					<Circle
+						key={`mid-${index}`}
+						x={midPoint.x}
+						y={midPoint.y}
+						radius={5}
+						fill="green"
+						draggable
+						onDragEnd={(e) =>
+							handleInsertPoint(index + 1, {
+								x: e.target.x(),
+								y: e.target.y()
+							})
+						}
+					/>
+				);
+			})}
+		</>
+	);
+};
+
+export default PolyLine;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/ImageFrame.tsx
+import React, { useRef, useEffect, useState } from "react";
+import { Stage, Layer, Rect } from "react-konva";
+import Geometry from "./Geometry/Geometry";
+import { useDrawingTools } from "./Tools/useDrawingTools";
+
+interface Point {
+	x: number;
+	y: number;
+}
+
+interface RectProps {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+interface GeometryItem {
+	type: "polyline" | "rectangle";
+	points?: Point[];
+	initialRect?: RectProps;
+}
+
+interface ImageFrameProps {
+	selectedTool: string;
+	isOpen: boolean;
+}
+
+const ImageFrame: React.FC<ImageFrameProps> = ({ selectedTool, isOpen }) => {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const stageRef = useRef<any>(null);
+	const {
+		dimensions,
+		geometries,
+		isCreating,
+		currentPoints,
+		currentRect,
+		setCurrentRect,
+		handleStageMouseDown,
+		handleStageMouseMove,
+		handleStageMouseUp
+	} = useDrawingTools(selectedTool, containerRef, stageRef, isOpen);
+
+	useEffect(() => {
+		if (stageRef.current) {
+			stageRef.current.width(dimensions.width);
+			stageRef.current.height(dimensions.height);
+			stageRef.current.batchDraw();
+		}
+	}, [dimensions, isOpen]);
+
+	useEffect(() => {
+		if (isOpen && stageRef.current) {
+			setTimeout(() => {
+				stageRef.current.width(dimensions.width);
+				stageRef.current.height(dimensions.height);
+				stageRef.current.batchDraw();
+			}, 100);
+		}
+	}, [isOpen, dimensions]);
+
+	return (
+		<div
+			ref={containerRef}
+			style={{
+				width: "100%",
+				height: "100%",
+				backgroundColor: "#5c949f"
+			}}
+		>
+			<Stage
+				width={dimensions.width}
+				height={dimensions.height}
+				onMouseDown={handleStageMouseDown}
+				onMouseMove={handleStageMouseMove}
+				onMouseUp={handleStageMouseUp}
+				ref={stageRef}
+			>
+				<Layer>
+					<Rect
+						x={0}
+						y={0}
+						width={dimensions.width}
+						height={dimensions.height}
+						fill="lightgray"
+					/>
+					{geometries.map((geo, index) => (
+						<Geometry
+							key={index}
+							type={geo.type}
+							points={geo.points}
+							initialRect={geo.initialRect}
+						/>
+					))}
+					{isCreating && currentRect && (
+						<Rect
+							x={currentRect.x}
+							y={currentRect.y}
+							width={currentRect.width}
+							height={currentRect.height}
+							stroke="blue"
+							strokeWidth={2}
+							dash={[4, 4]}
+						/>
+					)}
+				</Layer>
+			</Stage>
+		</div>
+	);
+};
+
+export default ImageFrame;
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/Tools/useDrawingTools.ts
+import { useState, useEffect } from "react";
+
+interface Point {
+	x: number;
+	y: number;
+}
+
+interface RectProps {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+interface GeometryItem {
+	type: "polyline" | "rectangle";
+	points?: Point[];
+	initialRect?: RectProps;
+}
+
+const useDrawingTools = (
+	selectedTool: string,
+	containerRef: React.RefObject<HTMLDivElement>,
+	stageRef: React.RefObject<any>,
+	isOpen: boolean
+) => {
+	const [dimensions, setDimensions] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight
+	});
+	const [geometries, setGeometries] = useState<GeometryItem[]>([]);
+	const [isCreating, setIsCreating] = useState(false);
+	const [creatingType, setCreatingType] = useState<
+		"polyline" | "rectangle" | null
+	>(null);
+	const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
+	const [currentRect, setCurrentRect] = useState<RectProps | null>(null);
+
+	useEffect(() => {
+		const handleResize = () => {
+			if (containerRef.current) {
+				setDimensions({
+					width: containerRef.current.offsetWidth,
+					height: containerRef.current.offsetHeight
+				});
+			}
+		};
+
+		window.addEventListener("resize", handleResize);
+		handleResize();
+
+		return () => {
+			window.removeEventListener("resize", handleResize);
+		};
+	}, [isOpen, containerRef]);
+
+	useEffect(() => {
+		if (selectedTool === "createPolyLine") {
+			setIsCreating(true);
+			setCreatingType("polyline");
+		} else if (selectedTool === "createBoundingBox") {
+			setIsCreating(true);
+			setCreatingType("rectangle");
+		} else {
+			setIsCreating(false);
+			setCreatingType(null);
+		}
+	}, [selectedTool]);
+
+	const handleStageMouseDown = (e: any) => {
+		if (
+			isCreating &&
+			creatingType === "rectangle" &&
+			currentRect === null
+		) {
+			const { x, y } = e.target.getStage().getPointerPosition();
+			setCurrentRect({ x, y, width: 0, height: 0 });
+		} else if (isCreating && creatingType === "polyline") {
+			const { x, y } = e.target.getStage().getPointerPosition();
+			setCurrentPoints([...currentPoints, { x, y }]);
+		}
+	};
+
+	const handleStageMouseMove = (e: any) => {
+		if (isCreating) {
+			const { x, y } = e.target.getStage().getPointerPosition();
+			if (creatingType === "rectangle" && currentRect) {
+				setCurrentRect({
+					...currentRect,
+					width: x - currentRect.x,
+					height: y - currentRect.y
+				});
+			} else if (
+				creatingType === "polyline" &&
+				currentPoints.length > 0
+			) {
+				const points = [...currentPoints, { x, y }];
+				setCurrentPoints(points);
+			}
+		}
+	};
+
+	const handleStageMouseUp = (e: any) => {
+		if (isCreating && creatingType === "rectangle" && currentRect) {
+			setGeometries([
+				...geometries,
+				{ type: "rectangle", initialRect: currentRect }
+			]);
+			setCurrentRect(null);
+			setIsCreating(false);
+		} else if (isCreating && creatingType === "polyline") {
+			setGeometries([
+				...geometries,
+				{ type: "polyline", points: currentPoints }
+			]);
+			setCurrentPoints([]);
+			setIsCreating(false);
+		}
+	};
+
+	return {
+		dimensions,
+		geometries,
+		isCreating,
+		currentPoints,
+		currentRect,
+		setCurrentRect,
+		handleStageMouseDown,
+		handleStageMouseMove,
+		handleStageMouseUp
+	};
+};
+
+export { useDrawingTools };
+
+
+Arquivo: components/Body/Tabs/MainTab/ImageFrame/index.tsx
+export { default } from "./ImageFrame";
+
+
+Arquivo: components/Body/Tabs/MainTab/MainTab.tsx
+import React, { useState, useRef, useEffect } from "react";
+import { Col, Container, Row } from "react-bootstrap";
+import Toolbar from "./Toolbar";
+import ImageFrame from "./ImageFrame";
+import ButtonBar from "./ButtonBar";
+import ClassToggleList from "./ClassToggleList/ClassToggleList";
+
+const MainTab: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
+    const [selectedTool, setSelectedTool] = useState<string>("");
+    const [isCreating, setIsCreating] = useState<boolean>(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerHeight, setContainerHeight] = useState<number>(0);
+
+    const handleToolChange = (tool: string) => {
+        setSelectedTool(tool);
+        setIsCreating(
+            tool === "createPolyLine" || tool === "createBoundingBox"
+        );
+    };
+
+    useEffect(() => {
+        if (containerRef.current) {
+            setContainerHeight(containerRef.current.clientHeight);
+        }
+    }, [isOpen]);
+
+    return (
+        <>
+            <Toolbar onToolChange={handleToolChange} isCreating={isCreating} />
+            <Container fluid style={{ padding: 0 }} ref={containerRef}>
+                <Row noGutters className="d-flex flex-column flex-lg-row" style={{ height: "75vh" }}>
+                    <Col lg={9} md={12} style={{ overflowY: "auto" }}>
+                        <div style={{ height: "500px" }}>
+                            <ImageFrame selectedTool={selectedTool} isOpen={isOpen} />
+                        </div>
+                    </Col>
+                    <Col lg={3} md={12} style={{ overflowY: "auto" }}>
+                        <div style={{ height: "500px" }}>
+                            <ClassToggleList />
+                        </div>
+                    </Col>
+                </Row>
+            </Container>
+            <ButtonBar />
+        </>
+    );
+};
+
+export default MainTab;
+
+
+Arquivo: components/Body/Tabs/MainTab/Toolbar.tsx
+import React, { useState, useEffect } from "react";
+import {
+	ButtonToolbar,
+	ToggleButton,
+	ToggleButtonGroup
+} from "react-bootstrap";
+
+interface ToolbarProps {
+	onToolChange: (value: string) => void;
+	isCreating: boolean;
+}
+
+const Toolbar: React.FC<ToolbarProps> = ({ onToolChange, isCreating }) => {
+	const [selectedTool, setSelectedTool] = useState<string>("");
+
+	const handleToolChange = (value: string) => {
+		if (!isCreating) {
+			setSelectedTool(value);
+			onToolChange(value);
+		}
+	};
+
+	useEffect(() => {
+		if (!isCreating) {
+			setSelectedTool("");
+		}
+	}, [isCreating]);
+
+	return (
+		<ButtonToolbar>
+			<ToggleButtonGroup
+				type="radio"
+				name="toolsGroup1"
+				value={selectedTool}
+				onChange={(value) => handleToolChange(value)}
+				className="mb-2"
+			>
+				<ToggleButton
+					variant="outline-secondary"
+					value="createPolyLine"
+					id="createPolyLine"
+					disabled={isCreating}
+				>
+					{isCreating && selectedTool === "createPolyLine"
+						? "Criando Poly Line"
+						: "Criar Poly Line"}
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="createBoundingBox"
+					id="createBoundingBox"
+					disabled={isCreating}
+				>
+					{isCreating && selectedTool === "createBoundingBox"
+						? "Criando Bounding Box"
+						: "Criar Bounding Box"}
+				</ToggleButton>
+			</ToggleButtonGroup>
+			<ToggleButtonGroup
+				type="radio"
+				name="toolsGroup2"
+				value={selectedTool}
+				onChange={(value) => handleToolChange(value)}
+				className="mb-2"
+			>
+				<ToggleButton
+					variant="outline-secondary"
+					value="select"
+					id="select"
+					disabled={isCreating}
+				>
+					Selecionar
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="resize"
+					id="resize"
+					disabled={isCreating}
+				>
+					Redimensionar
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="move"
+					id="move"
+					disabled={isCreating}
+				>
+					Mover
+				</ToggleButton>
+				<ToggleButton
+					variant="outline-secondary"
+					value="delete"
+					id="delete"
+					disabled={isCreating}
+				>
+					Deletar
+				</ToggleButton>
+			</ToggleButtonGroup>
+		</ButtonToolbar>
+	);
+};
+
+export default Toolbar;
+
+
+Arquivo: components/Header/Header.tsx
+import React, { useState } from "react";
+import NavbarComponent from "./Navbar";
+import Sidebar from "./Sidebar";
+
+const Header: React.FC = () => {
+	const [show, setShow] = useState(false);
+
+	const handleClose = () => setShow(false);
+	const handleShow = () => setShow(true);
+
+	return (
+		<>
+			<NavbarComponent handleShow={handleShow} />
+			<Sidebar show={show} handleClose={handleClose} />
+		</>
+	);
+};
+
+export default Header;
+
+
+Arquivo: components/Header/Navbar.tsx
+import React from "react";
+import { Navbar, Nav, Button, Badge } from "react-bootstrap";
+import { FaBars, FaExclamationCircle, FaBell } from "react-icons/fa";
+import { logoStyle, navTextStyle, buttonStyle, badgeStyle } from "./styles";
+
+interface NavbarProps {
+	handleShow: () => void;
+}
+
+const NavbarComponent: React.FC<NavbarProps> = ({ handleShow }) => {
+	return (
+		<Navbar bg="dark" variant="dark" className="px-3">
+			<Nav>
+				<FaBars
+					style={{
+						color: "green",
+						fontSize: "1.5em",
+						cursor: "pointer"
+					}}
+					onClick={handleShow}
+				/>
+			</Nav>
+			<img
+				src="/icons/LOGO-1920w.webp"
+				alt="Logo da Empresa"
+				style={logoStyle}
+			/>
+			<Navbar.Text className="mx-auto" style={navTextStyle}>
+				Sistema Geral de Classificação (SGC)
+			</Navbar.Text>
+			<Nav className="ml-auto d-flex align-items-center gap-2">
+				<Button variant="success" className="mr-5">
+					Metas
+				</Button>
+				<Button variant="success" className="mr-5" style={buttonStyle}>
+					<FaExclamationCircle
+						style={{ color: "white", fontSize: "1.2em" }}
+					/>
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						3
+					</Badge>
+				</Button>
+				<Button variant="warning" className="mr-2" style={buttonStyle}>
+					<FaBell style={{ color: "white", fontSize: "1.2em" }} />
+					<Badge
+						pill
+						bg="danger"
+						style={{ ...badgeStyle, top: "0", right: "0" }}
+					>
+						10
+					</Badge>
+				</Button>
+			</Nav>
+		</Navbar>
+	);
+};
+
+export default NavbarComponent;
+
+
+Arquivo: components/Header/Sidebar.tsx
+import React from "react";
+import { Offcanvas, Nav } from "react-bootstrap";
+import {
+	FaHome,
+	FaTachometerAlt,
+	FaClipboardList,
+	FaBox,
+	FaUsers
+} from "react-icons/fa";
+
+interface SidebarProps {
+	show: boolean;
+	handleClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ show, handleClose }) => {
+	return (
+		<Offcanvas show={show} onHide={handleClose}>
+			<Offcanvas.Header closeButton>
+				<Offcanvas.Title>Sidebar</Offcanvas.Title>
+			</Offcanvas.Header>
+			<Offcanvas.Body className="p-0">
+				<Nav className="flex-column bg-dark h-100 p-3">
+					<Nav.Link href="#home" className="text-white">
+						<FaHome className="mr-2" /> Home
+					</Nav.Link>
+					<Nav.Link href="#dashboard" className="text-white">
+						<FaTachometerAlt className="mr-2" /> Dashboard
+					</Nav.Link>
+					<Nav.Link href="#orders" className="text-white">
+						<FaClipboardList className="mr-2" /> Orders
+					</Nav.Link>
+					<Nav.Link href="#products" className="text-white">
+						<FaBox className="mr-2" /> Products
+					</Nav.Link>
+					<Nav.Link href="#customers" className="text-white">
+						<FaUsers className="mr-2" /> Customers
+					</Nav.Link>
+					<div className="mt-auto">
+						<div className="d-flex align-items-center text-white">
+							<img
+								src="https://via.placeholder.com/40"
+								alt="Profile"
+								className="rounded-circle mr-2"
+								width="40"
+								height="40"
+							/>
+							<span>mdo</span>
+						</div>
+					</div>
+				</Nav>
+			</Offcanvas.Body>
+		</Offcanvas>
+	);
+};
+
+export default Sidebar;
+
+
+Arquivo: components/Header/styles.ts
+import { CSSProperties } from "react";
+
+export const logoStyle: CSSProperties = {
+	height: "50px",
+	marginRight: "auto",
+	marginLeft: "10px"
+};
+
+export const navTextStyle: CSSProperties = {
+	color: "white",
+	fontSize: "1.5em"
+};
+
+export const buttonStyle: CSSProperties = {
+	position: "relative"
+};
+
+export const badgeStyle: CSSProperties = {
+	position: "absolute",
+	top: "-5px",
+	right: "-5px"
+};
+
+
+Arquivo: declarations.d.ts
+declare module "*.png" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpg" {
+	const value: string;
+	export default value;
+}
+declare module "*.jpeg" {
+	const value: string;
+	export default value;
+}
+declare module "*.gif" {
+	const value: string;
+	export default value;
+}
+declare module "*.svg" {
+	const value: string;
+	export default value;
+}
+declare module "*.webp" {
+	const value: string;
+	export default value;
+}
+
+
+Arquivo: index.tsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+const container = document.getElementById("root");
+const root = createRoot(container!);
+root.render(<App />);
+
+
+Arquivo: react-app-env.d.ts
+/// <reference types="react-scripts" />
+
+
+Arquivo: styles/global.css
+
+
