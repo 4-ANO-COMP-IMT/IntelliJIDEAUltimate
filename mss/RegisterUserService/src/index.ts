@@ -13,7 +13,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(adminMiddleware);
-app.post('/register', async (req, res) => {
+app.post('/register', async (req, res): Promise<void> => {
     const { new_username, new_password, is_admin } = req.body;
     console.log('Registering user...');
     //console.log(`Username: ${new_username}`);
@@ -23,7 +23,8 @@ app.post('/register', async (req, res) => {
 
     let user = await getUserByUsername(newUser.getUsername());
     if (user) {
-        return res.status(400).json({ message: 'Username already exists' });
+        res.status(400).json({ message: 'Username already exists' });
+        return;
     }
     user = await createUser(newUser.getUsername(), newUser.getPassword(), newUser.getIsAdmin());
     console.log(`User registered: ${user.username} with id: ${user.user_id}`);

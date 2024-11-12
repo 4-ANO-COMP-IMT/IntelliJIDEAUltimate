@@ -3,9 +3,12 @@ import { requestAllClassifiedImages, requestImageForClassification } from "../se
 import { Request, Response } from 'express';
 
 
-export const allocateImage = async function (req: Request, res: Response) {
+export const allocateImage = async function (req: Request, res: Response): Promise<void> {
     let user_id = req.body.user_id;
-    if(!user_id) return res.status(401).json({ message: 'middleware falhou' });
+    if(!user_id) {
+        res.status(401).json({ message: 'middleware falhou' });
+        return;
+    }
 
     try {
         let allocationImageDB = await requestImageForClassification(user_id);

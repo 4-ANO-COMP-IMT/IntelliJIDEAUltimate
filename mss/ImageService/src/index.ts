@@ -18,6 +18,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // Para processar o corpo JSON das requisições
 
+const NODE_PORT = 30003; // PORTA USADA PELO SERVICE DO K8S - COLOCAR EM .ENV / VERIFICAR SE O K8S JA COLOCA NO ENV AUTOMATICAMENTE
 
 // Função para lidar com o upload de arquivos
 function handleFileUpload(req: Request, res: Response): void {
@@ -52,7 +53,7 @@ function handleFileUpload(req: Request, res: Response): void {
     const id = imageDB.image_id;
     const imageAllocation: ImageAllocation = {
       image_id: id,
-      image_url: `http://localhost:${PORT}/view/${fileFullName}`
+      image_url: `http://localhost:${NODE_PORT}/view/${fileFullName}`
     };
     const imagePublisher = await ImagePublisherSingleton.getInstance(); 
     await imagePublisher.publish(imageAllocation);
