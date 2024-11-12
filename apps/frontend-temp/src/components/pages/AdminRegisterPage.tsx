@@ -31,7 +31,7 @@ const registerUser = async (credentials: RegisterFormValues): Promise<RegisterRe
     }
   }
 
-  const response = await axios.post('http://localhost:3001/register', req_body, headers);
+  const response = await axios.post('http://localhost:30001/register', req_body, headers);
   return response.data; // Supondo que o servidor retorna { message: '...' }
 };
 
