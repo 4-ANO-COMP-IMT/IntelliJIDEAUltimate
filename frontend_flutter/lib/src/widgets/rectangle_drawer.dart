@@ -1,92 +1,177 @@
 import 'package:flutter/material.dart';
+import 'package:frontend_flutter/src/widgets/tool_select_buttons.dart';
+import 'package:provider/provider.dart';
+
+class ClassifiedRect {
+  late Rect rectangle;
+  late ClassificationOption classification;
+
+  ClassifiedRect (this.rectangle, this.classification);
+
+}
+
+class RectanglesNotifier extends ChangeNotifier {
+  
+  final List<ClassifiedRect> _rectangles = [];
+  Size? _imageSize;
+
+  List<ClassifiedRect> get rectangles => _rectangles;
+  Size? get imageSize => _imageSize;
+
+  void addRectangle(ClassifiedRect rect) {
+    _rectangles.add(rect);
+    notifyListeners();
+  }
+
+  void clearRectangles() {
+    _rectangles.clear();
+    notifyListeners();
+  }
+
+  set imageSize(Size? value) {
+    _imageSize = value;
+    notifyListeners();
+  }
+}
 
 class RectangleDrawer extends StatefulWidget {
-  const RectangleDrawer();
 
-  
+  const RectangleDrawer({super.key});
+
   @override
   RectangleDrawerState createState() => RectangleDrawerState();
 }
 
 class RectangleDrawerState extends State<RectangleDrawer> {
-  Offset _startPoint = Offset.zero; // Ponto inicial
-  Offset _endPoint = Offset.zero; // Ponto final
-  bool _drawing = false; // Para controlar se estamos desenhando
 
-  // Variáveis para armazenar informações do retângulo
-  double _centerX = 0;
-  double _centerY = 0;
-  double _width = 0;
-  double _height = 0;
-
-  void _onPanStart(DragStartDetails details) {
-    setState(() {
-      _drawing = true;
-      _startPoint = details.localPosition; // Ponto onde o gesto começou
-    });
-  }
-
-  void _onPanUpdate(DragUpdateDetails details) {
-    setState(() {
-      _endPoint = details.localPosition; // Ponto onde o gesto está
-    });
-  }
-
-  void _onPanEnd(DragEndDetails details) {
-    setState(() {
-      _drawing = false;
-
-      // Calcular o centro, largura e altura do retângulo
-      double left = _startPoint.dx < _endPoint.dx ? _startPoint.dx : _endPoint.dx;
-      double top = _startPoint.dy < _endPoint.dy ? _startPoint.dy : _endPoint.dy;
-      _width = (_endPoint.dx - _startPoint.dx).abs();
-      _height = (_endPoint.dy - _startPoint.dy).abs();
-      _centerX = left + _width / 2; // Centro X
-      _centerY = top + _height / 2; // Centro Y
-    });
-  }
+  Offset _startPoint = Offset.zero;
+  Offset _endPoint = Offset.zero;
+  bool _drawing = false;
+  late ClassificationProvider _classificationProvider;
+  late Size imageSize;
+  final double _paintWidth = 3;
 
   @override
   Widget build(BuildContext context) {
+
+    _classificationProvider = Provider.of(context, listen: false);
+
     return GestureDetector(
         onPanStart: _onPanStart,
         onPanUpdate: _onPanUpdate,
         onPanEnd: _onPanEnd,
-        child: CustomPaint(
-          size: Size.infinite,
-          painter: RectanglePainter(_startPoint, _endPoint, _drawing),
-        ),
+        child: Consumer<RectanglesNotifier>(
+          builder: (context, rectanglesProvider, child) {
+            
+            if(rectanglesProvider._imageSize == null) {
+              print("imageSize é null !!!");
+            }
+            
+            imageSize = rectanglesProvider._imageSize ?? Size.zero;
+
+            return Stack(
+              children: [
+                CustomPaint(
+                  size: imageSize,
+                  painter: DrawingRectanglePainter(
+                    _startPoint,
+                    _endPoint,
+                    _paintWidth,
+                    _drawing,
+                    rectanglesProvider.rectangles,
+                    _classificationProvider
+                  ),
+                ),
+              ],
+            );
+          }
+        )
       );
+  }
+
+  Offset _clampPointToImageExtents(Offset point) {
+    final imageRect = Rect.fromLTWH(0, 0, imageSize.width, imageSize.height).deflate(_paintWidth/2);
+    if (!imageRect.contains(point)) {
+      
+      final adjustedX = point.dx.clamp(imageRect.left, imageRect.right);
+      final adjustedY = point.dy.clamp(imageRect.top, imageRect.bottom);
+      return Offset(adjustedX, adjustedY);
+    }
+    else {
+      return point;
+    }
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    if(_classificationProvider.currentClassificationTool != ClassificationOption.none) {
+      setState(() {
+        _drawing = true;
+        _startPoint = _clampPointToImageExtents(details.localPosition);// Clamp para caso fizermos o espaço de desenho ser maior que a imagem
+        _endPoint = _startPoint;
+      });
+    }
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if(_drawing) {
+      setState(() {
+        _endPoint = _clampPointToImageExtents(details.localPosition);
+      });
+    }
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (_drawing) {
+      setState(() {
+        _drawing = false;
+        _endPoint = _clampPointToImageExtents(details.localPosition);
+        final drawnRectangle = Rect.fromPoints(_startPoint, _endPoint);
+      
+        final ClassificationOption classification = Provider.of<ClassificationProvider>(context, listen: false).currentClassificationTool;
+        Provider.of<RectanglesNotifier>(context, listen: false).addRectangle(ClassifiedRect(drawnRectangle, classification));
+        
+      });
+    }
   }
 }
 
-class RectanglePainter extends CustomPainter {
-  final Offset startPoint;
-  final Offset endPoint;
-  final bool drawing;
+class DrawingRectanglePainter extends CustomPainter {
+  final Offset _startPoint;
+  final Offset _endPoint;
+  final double _paintWidth;
+  final bool _drawing;
+  final List<ClassifiedRect> _rectangles;
+  final ClassificationProvider _classificationProvider;
 
-  RectanglePainter(this.startPoint, this.endPoint, this.drawing);
+  DrawingRectanglePainter(this._startPoint, this._endPoint, this._paintWidth, this._drawing, this._rectangles, this._classificationProvider);
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (drawing) {
-      // Desenhar o retângulo enquanto está desenhando
-      double left = startPoint.dx < endPoint.dx ? startPoint.dx : endPoint.dx;
-      double top = startPoint.dy < endPoint.dy ? startPoint.dy : endPoint.dy;
-      double width = (endPoint.dx - startPoint.dx).abs();
-      double height = (endPoint.dy - startPoint.dy).abs();
+    
+    final paintObject = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _paintWidth;
+    
+    if (_drawing) {
 
       canvas.drawRect(
-        Rect.fromLTWH(left, top, width, height),
-        Paint()
-          ..color = Colors.blue.withOpacity(0.5)
-          ..style = PaintingStyle.fill,
+        Rect.fromPoints(_startPoint, _endPoint),
+        paintObject..color = _classificationProvider.currentClassificationTool.color
+      );
+    }
+    for (var classRect in _rectangles) {
+
+      paintObject.color = classRect.classification.color;
+      canvas.drawRect(
+        classRect.rectangle,
+        paintObject
       );
     }
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true; // Sempre repinta
+    return true;
   }
 }
+
