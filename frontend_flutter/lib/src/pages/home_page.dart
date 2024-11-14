@@ -170,7 +170,7 @@ class HomePage extends StatefulWidget {
 
   final String token;
 
-  HomePage(this.token, {super.key});
+  const HomePage(this.token, {super.key});
 
   @override
   HomePageState createState() => HomePageState();

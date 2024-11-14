@@ -31,6 +31,8 @@ class ClassificationProvider extends ChangeNotifier {
 }
 
 class ToolButtons extends StatelessWidget {
+  const ToolButtons({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(
