@@ -70,7 +70,8 @@ spec:
     spec:
       containers:
         - name: postgres-auth
-          image: postgres:latest
+          image: intellijideaultimate-postgres_auth:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 5432
           env:
@@ -91,10 +92,6 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 5
-          lifecycle:
-            postStart:
-              exec:
-                command: ["sh", "-c", "su postgres; psql -U $POSTGRES_USER -d $POSTGRES_DB -c \"CREATE TABLE IF NOT EXISTS users (user_id SERIAL PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, is_admin BOOLEAN NOT NULL);CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, user_id INT NOT NULL, session_token VARCHAR(255) UNIQUE NOT NULL, session_expiry TIMESTAMP NOT NULL);INSERT INTO users(username, password, is_admin) SELECT 'admin', 'admin', TRUE WHERE NOT EXISTS (SELECT 1 FROM users);\""]
       volumes:
         - name: pgdata-auth
           persistentVolumeClaim:
@@ -199,7 +196,8 @@ spec:
     spec:
       containers:
         - name: postgres-register
-          image: postgres:latest
+          image: intellijideaultimate-postgres_register:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 5432
           env:
@@ -220,10 +218,6 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 5
-          lifecycle:
-            postStart:
-              exec:
-                command: ["sh", "-c", "su postgres; psql -U $POSTGRES_USER -d $POSTGRES_DB -c \"CREATE TABLE IF NOT EXISTS users (user_id SERIAL PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, is_admin BOOLEAN NOT NULL);CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, user_id INT NOT NULL, session_token VARCHAR(255) UNIQUE NOT NULL, session_expiry TIMESTAMP NOT NULL);INSERT INTO users(username, password, is_admin) SELECT 'admin', 'admin', TRUE WHERE NOT EXISTS (SELECT 1 FROM users);\""]
       volumes:
         - name: pgdata-register
           persistentVolumeClaim:
@@ -328,7 +322,8 @@ spec:
     spec:
       containers:
         - name: postgres-classification
-          image: postgres:latest
+          image: intellijideaultimate-postgres_classification:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 5432
           env:
@@ -349,10 +344,6 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 
-          lifecycle:
-            postStart:
-              exec:
-                command: ["sh", "-c", "su postgres; psql -U $POSTGRES_USER -d $POSTGRES_DB -c \"CREATE TABLE IF NOT EXISTS sessions (session_id SERIAL PRIMARY KEY, user_id INT NOT NULL, session_token VARCHAR(255) UNIQUE NOT NULL, session_expiry TIMESTAMP NOT NULL); CREATE TABLE IF NOT EXISTS rectangles (rectangle_id SERIAL PRIMARY KEY, image_id INTEGER NOT NULL, class_name VARCHAR(40) NOT NULL, center_x NUMERIC NOT NULL, center_y NUMERIC NOT NULL, width NUMERIC NOT NULL, height NUMERIC NOT NULL); CREATE TABLE IF NOT EXISTS allocation_images (image_id SERIAL PRIMARY KEY, image_url VARCHAR(200) NOT NULL, classification_status VARCHAR(50) DEFAULT 'pending', user_id INTEGER DEFAULT NULL, timestamp_reservation TIMESTAMP DEFAULT NULL, timestamp_classification TIMESTAMP DEFAULT NULL);\""]
       volumes:
         - name: pgdata-classification
           persistentVolumeClaim:
@@ -457,7 +448,8 @@ spec:
     spec:
       containers:
         - name: postgres-image
-          image: postgres:latest
+          image: intellijideaultimate-postgres_image:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 5432
           env:
@@ -478,10 +470,6 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 5
-          lifecycle:
-            postStart:
-              exec:
-                command: ["sh", "-c", "su postgres; psql -U $POSTGRES_USER -d $POSTGRES_DB -c \"CREATE TABLE IF NOT EXISTS images(image_id SERIAL PRIMARY KEY, filename VARCHAR(255), filetype VARCHAR(255));\""]
       volumes:
         - name: pgdata-image
           persistentVolumeClaim:
