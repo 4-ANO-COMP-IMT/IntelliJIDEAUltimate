@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:html' as html;
+
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,6 +27,19 @@ class HomePageState extends State<HomePage> {
             color: Colors.white
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Padding(
+              padding: const EdgeInsets.only(right: 50.0),
+              child: Icon(
+                Icons.switch_account,
+                size: 40,
+                color: Colors.white,
+              ),
+            ),
+            onPressed: () => html.window.location.replace('http://localhost:3010/'),
+            )
+        ],
       ),
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,
