@@ -26,8 +26,8 @@ class ImageDisplay extends StatefulWidget {
   final String _token;
   final Future<void> Function(BuildContext, String) _onImageLoaded;
 
-  static final double displayWidth = 640;
-  static final double displayHeight = 480;
+  static final double displayWidth = 960;
+  static final double displayHeight = 640;
 
   const ImageDisplay(this._token, this._onImageLoaded, {super.key});
 

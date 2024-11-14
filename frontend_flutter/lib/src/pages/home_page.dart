@@ -39,12 +39,10 @@ class HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      floatingActionButton: Align(
-        alignment: Alignment(0.4, 0.9), // Ajuste x e y para controlar a posição
-        child: FloatingActionButton(
-          onPressed: () async => await _sendRectangles(context, widget.token),
-          child: const Icon(Icons.send), //Text('Send'),
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        label: Text("Enviar", textScaler: TextScaler.linear(2.5),),
+        icon: const Icon(Icons.send),
+        onPressed: () async => await _sendRectangles(context, widget.token),
       ),
     );
   }

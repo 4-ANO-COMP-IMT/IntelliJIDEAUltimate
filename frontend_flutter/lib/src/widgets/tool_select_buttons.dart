@@ -39,7 +39,7 @@ class ToolButtons extends StatelessWidget {
         child: ToggleButtons(
           textStyle: TextStyle(fontWeight: FontWeight.bold),
           borderRadius: BorderRadius.circular(8.0),
-          fillColor: Colors.blue,
+          borderWidth: 2,
           color: Colors.black,
           selectedBorderColor: Colors.blue,
           borderColor: Colors.grey,
@@ -48,11 +48,13 @@ class ToolButtons extends StatelessWidget {
             Provider.of<ClassificationProvider>(context, listen: false).selectDrawingTool(ClassificationOption.values[index + 1]);
           },
           children: List.generate(ClassificationOption.values.length - 1, (int index) {
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                ClassificationOption.values[index + 1].text,
-                style: TextStyle(fontSize: 20, color: ClassificationOption.values[index + 1].color),
+            return SizedBox(
+              width: 240,
+              child: Center(
+                child: Text(
+                  ClassificationOption.values[index + 1].text,
+                  style: TextStyle(fontSize: 35, color: ClassificationOption.values[index + 1].color),
+                ),
               ),
             );
           })

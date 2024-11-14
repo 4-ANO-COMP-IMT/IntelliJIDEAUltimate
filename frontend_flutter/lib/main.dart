@@ -19,8 +19,13 @@ class _MyApp extends StatelessWidget {
     
 
     return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      theme: ThemeData.light().copyWith(
+        colorScheme: ColorScheme.light(
+          primary: const Color.fromARGB(255, 42, 54, 100),
+          secondary: Colors.green,
+          surface: const Color(0xFFF5F5F5),
+          error: Colors.red,
+        ),
       ),
       home: token != null ? HomePage(token) : ForbiddenPage()
     );
