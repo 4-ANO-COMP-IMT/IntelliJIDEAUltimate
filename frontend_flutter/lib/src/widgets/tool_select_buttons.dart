@@ -7,8 +7,8 @@ enum ClassificationOption {
   gato;
 
   Color get color => switch(this) {
-    ClassificationOption.cachorro => Colors.orange,
-    ClassificationOption.gato => Colors.purple,
+    ClassificationOption.cachorro => Color.fromARGB(255, 51, 255, 87),
+    ClassificationOption.gato => Color.fromARGB(255, 150, 51, 255),
     _ => Colors.black12
   };
 
