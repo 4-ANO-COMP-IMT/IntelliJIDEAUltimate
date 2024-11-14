@@ -1,3 +1,5 @@
+import 'dart:html' as html;
+
 import 'package:flutter/material.dart';
 
 class ForbiddenPage extends StatelessWidget {
@@ -34,10 +36,11 @@ class ForbiddenPage extends StatelessWidget {
             ),
             SizedBox(height: 30),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text('Voltar'),
+              onPressed: () => html.window.location.replace('http://localhost:3010'),
+              child: Text(
+                'Login',
+                style: TextStyle(fontSize: 25)
+                ),
             ),
           ],
         ),
