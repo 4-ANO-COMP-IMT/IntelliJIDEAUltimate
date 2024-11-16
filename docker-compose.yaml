@@ -18,7 +18,10 @@ services:
       - backend
 
   postgres_auth:
-    image: postgres:latest
+    build:
+      context: ./postgres_init
+      args:
+        INIT_SCRIPT: authdb_init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
@@ -54,7 +57,10 @@ services:
       - backend
 
   postgres_register:
-    image: postgres:latest
+    build:
+      context: ./postgres_init
+      args:
+        INIT_SCRIPT: registerdb_init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
@@ -93,7 +99,10 @@ services:
       - backend
 
   postgres_image:
-    image: postgres:latest
+    build:
+      context: ./postgres_init
+      args:
+        INIT_SCRIPT: imagedb_init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
@@ -131,7 +140,10 @@ services:
 
 
   postgres_classification:
-    image: postgres:latest
+    build:
+      context: ./postgres_init
+      args:
+        INIT_SCRIPT: classificationdb_init.sql
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mysecretpassword
@@ -164,13 +176,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    networks:
-      - backend
 
 volumes:
   pgdata_auth:

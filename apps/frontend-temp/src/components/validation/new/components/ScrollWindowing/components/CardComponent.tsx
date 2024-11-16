@@ -28,7 +28,7 @@ const CardComponent: React.FC<{cardInfo:CardInfo}> = ({cardInfo}) => {
 
   useEffect(() => {
     const fetchClassifications = async () => {
-      const response = await axios.get(`http://localhost:3002/api/classification/${cardInfo.image_id}`);
+      const response = await axios.get(`http://localhost:30002/api/classification/${cardInfo.image_id}`);
       
       const classifications:{
         "rectangle_id": number,

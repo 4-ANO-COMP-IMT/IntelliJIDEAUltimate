@@ -21,7 +21,7 @@ export const QueryProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const fetchImages = async () => {
       setIsLoading(true);
     //   const data = generateMockData(201); // Gera os dados simulados
-      const data = (await axios.get('http://localhost:3002/api/validation')).data.imageAllocations;
+      const data = (await axios.get('http://localhost:30002/api/validation')).data.imageAllocations;
       setImages(data);
       setIsLoading(false);
     };

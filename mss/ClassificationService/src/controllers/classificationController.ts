@@ -5,7 +5,10 @@ import { getUserIdFromToken } from '@intelij-ultimate/session-utility'
 
 export const createClassification = async function (req: Request, res: Response) {
     let user_id = req.body.user_id;
-    if(!user_id) return res.status(401).json({ message: 'middleware falhou' });
+    if(!user_id) {
+        res.status(401).json({ message: 'middleware falhou' });
+        return;
+    }
 
     let rectangles: RectangleReq[] = req.body.rectangles;
     let image_id: number = req.body.image_id;
@@ -21,13 +24,14 @@ export const createClassification = async function (req: Request, res: Response)
     
 }
 
-export const getClassificationsById = async function (req: Request, res: Response) {
+export const getClassificationsById = async function (req: Request, res: Response): Promise<void> {
     const id = Number.parseInt(req.params.id);
     const classifications: RectangleDB[] = await getRectanglesByImageId(id);
 
     if(!classifications) {
-        return res.status(200).json({ message: 'There are no classifications for this image' });
+        res.status(200).json({ message: 'There are no classifications for this image' });
+        return;
     }
-    return res.status(200).json({ message: 'Got classifications', classifications: classifications});
+    res.status(200).json({ message: 'Got classifications', classifications: classifications});
     
 }

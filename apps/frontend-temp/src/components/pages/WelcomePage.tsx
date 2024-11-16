@@ -23,7 +23,7 @@ const WelcomePage: React.FC = () => {
         .map((route, idx) => (
           <Row className="text-center w-50 mb-3" key={idx}>
             <Col>
-              <button onClick={() => navigate(route.path)}>{route.name}</button>
+              <button onClick={() => route.name == 'Classificar' ? window.location.href = 'http://localhost:59963' : navigate(route.path) }>{route.name}</button>
             </Col>
           </Row>
         ))}

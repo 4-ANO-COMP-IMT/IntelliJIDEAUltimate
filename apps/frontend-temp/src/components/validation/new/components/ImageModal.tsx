@@ -19,7 +19,7 @@ const ImageModal: React.FC = () => {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          `http://localhost:3002/api/classification/${selectedCard.image_id}`
+          `http://localhost:30002/api/classification/${selectedCard.image_id}`
         );
 
         const classifications: {

@@ -103,7 +103,7 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
       };
 
       // Conexão com a API de envio de retângulos
-      await axios.post('http://localhost:3002/api/classification', reqBody, headers);
+      await axios.post('http://localhost:30002/api/classification', reqBody, headers);
 
       alert('Retângulos enviados com sucesso!');
     } catch (error) {
@@ -133,7 +133,7 @@ export const AppProvider: React.FC<PropsWithChildren> = ({ children }) => {
       };
 
       // Conexão com a API para alocar a próxima imagem
-      const response = await axios.post('http://localhost:3002/api/allocate', null, headers);
+      const response = await axios.post('http://localhost:30002/api/allocate', null, headers);
       const { image_id, image_url } = response.data;
 
       setImageUrl(image_url);

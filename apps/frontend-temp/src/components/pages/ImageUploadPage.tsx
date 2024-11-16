@@ -54,7 +54,7 @@ const ImageUploadPage: React.FC = () => {
     });
     
     try {
-      const response = await axios.post('http://localhost:3003/upload', formData, {
+      const response = await axios.post('http://localhost:30003/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -1,31 +1,53 @@
+import 'dart:js' as js;
 import 'package:flutter/material.dart';
-import '../src/widgets/rectangle_drawer.dart';
+import 'package:frontend_flutter/src/widgets/image_display.dart';
+import 'package:provider/provider.dart';
+
+import 'src/pages/home_page.dart';
+import 'src/pages/forbidden_page.dart';
+import 'src/widgets/tool_select_buttons.dart';
+import 'src/widgets/rectangle_drawer.dart';
+
+class _MyApp extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+
+    String? token = getSessionToken();
+    //print("token: $token");
+
+    
+
+    return MaterialApp(
+      theme: ThemeData.light().copyWith(
+        colorScheme: ColorScheme.light(
+          primary: const Color.fromARGB(255, 42, 54, 100),
+          secondary: Colors.green,
+          surface: const Color(0xFFF5F5F5),
+          error: Colors.red,
+        ),
+      ),
+      home: token != null ? HomePage(token) : ForbiddenPage()
+    );
+  }
+
+  String? getSessionToken() {
+    final sessionToken = js.context.callMethod('eval', ['document.cookie']);
+    final tokenMatch = RegExp(r'session_token=([^;]+)').firstMatch(sessionToken);
+    return tokenMatch?.group(1);
+  }
+
+}
 
 void main() {
-  var app = MaterialApp(
-    home: Scaffold(
-      appBar: AppBar(
-        title: const Text("Sistema Geral de Classificação"),
-        backgroundColor: const Color.fromARGB(255, 100, 100, 100),
-      ),
-      body: Stack(
-        children: [
-          const RectangleDrawer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.network(
-                'https://picsum.photos/150',/* URL obtida com o allocate - algo como localhost:30003. O POSTGRE TEM Q GUARDAR 30000 AGORA */
-                fit: BoxFit.contain,
-                width: 500,
-                height: 500,)
-            ],
-          )
-        ],
-      )
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => RectanglesNotifier()),
+        ChangeNotifierProvider(create: (context) => ClassificationProvider()),
+        ChangeNotifierProvider(create: (context) => ImageNotifier()),
+      ],
+      child: _MyApp(),
     )
   );
-
-  runApp(app);
 }
