@@ -1,0 +1,566 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres-auth 5432; do echo waiting for postgres; sleep 2; done;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until wget -q --spider http://rabbitmq:rabbitmq@rabbitmq:15672/api/healthchecks/node; do echo waiting for rabbitmq; sleep 2; done;']
+      containers:
+        - name: auth-service
+          image: intellijideaultimate-auth_service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_HOST
+              value: "postgres-auth"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "mysecretpassword"
+            - name: DATABASE_NAME
+              value: "authdb"
+            - name: RABBITMQ_PORT ## Evita a env criada automaticamente pelo kubernetes
+              value: "5672"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30000 # 30000 a 32767
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-auth
+    spec:
+      containers:
+        - name: postgres-auth
+          image: intellijideaultimate-postgres_auth:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "mysecretpassword"
+            - name: POSTGRES_DB
+              value: "authdb"
+          volumeMounts:
+            - name: pgdata-auth
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+      volumes:
+        - name: pgdata-auth
+          persistentVolumeClaim:
+            claimName: pgdata-auth-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-auth
+spec:
+  selector:
+    app: postgres-auth
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30433
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgdata-auth-pvc
+spec:
+  volumeName: pgdata-auth-pv
+  storageClassName: "" # Necessario para evitar a classe padrao 'hostpath'
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+##################################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: register-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: register-service
+  template:
+    metadata:
+      labels:
+        app: register-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres-register 5432; do echo waiting for postgres; sleep 2; done;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until wget -q --spider http://rabbitmq:rabbitmq@rabbitmq:15672/api/healthchecks/node; do echo waiting for rabbitmq; sleep 2; done;']
+      containers:
+        - name: register-service
+          image: intellijideaultimate-register_service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3001
+          env:
+            - name: DATABASE_HOST
+              value: "postgres-register"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "mysecretpassword"
+            - name: DATABASE_NAME
+              value: "registerdb"
+            - name: RABBITMQ_PORT ## Evita a env criada automaticamente pelo kubernetes
+              value: "5672"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: register-service
+spec:
+  selector:
+    app: register-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
+      nodePort: 30001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-register
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-register
+  template:
+    metadata:
+      labels:
+        app: postgres-register
+    spec:
+      containers:
+        - name: postgres-register
+          image: intellijideaultimate-postgres_register:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "mysecretpassword"
+            - name: POSTGRES_DB
+              value: "registerdb"
+          volumeMounts:
+            - name: pgdata-register
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+      volumes:
+        - name: pgdata-register
+          persistentVolumeClaim:
+            claimName: pgdata-register-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-register
+spec:
+  selector:
+    app: postgres-register
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30434
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgdata-register-pvc
+spec:
+  volumeName: pgdata-register-pv
+  storageClassName: "" # Necessario para evitar a classe padrao 'hostpath'
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+##################################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: classification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: classification-service
+  template:
+    metadata:
+      labels:
+        app: classification-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres-classification 5432; do echo waiting for postgres; sleep 2; done;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until wget -q --spider http://rabbitmq:rabbitmq@rabbitmq:15672/api/healthchecks/node; do echo waiting for rabbitmq; sleep 2; done;']
+      containers:
+        - name: classification-service
+          image: intellijideaultimate-classification_service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3002
+          env:
+            - name: DATABASE_HOST
+              value: "postgres-classification"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "mysecretpassword"
+            - name: DATABASE_NAME
+              value: "classificationdb"
+            - name: RABBITMQ_PORT ## Evita a env criada automaticamente pelo kubernetes
+              value: "5672"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: classification-service
+spec:
+  selector:
+    app: classification-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002
+      nodePort: 30002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-classification
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-classification
+  template:
+    metadata:
+      labels:
+        app: postgres-classification
+    spec:
+      containers:
+        - name: postgres-classification
+          image: intellijideaultimate-postgres_classification:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "mysecretpassword"
+            - name: POSTGRES_DB
+              value: "classificationdb"
+          volumeMounts:
+            - name: pgdata-classification
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 
+      volumes:
+        - name: pgdata-classification
+          persistentVolumeClaim:
+            claimName: pgdata-classification-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-classification
+spec:
+  selector:
+    app: postgres-classification
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30435
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgdata-classification-pvc
+spec:
+  volumeName: pgdata-classification-pv
+  storageClassName: "" # Necessario para evitar a classe padrao 'hostpath'
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+##################################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-service
+  template:
+    metadata:
+      labels:
+        app: image-service
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres-image 5432; do echo waiting for postgres; sleep 2; done;']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until wget -q --spider http://rabbitmq:rabbitmq@rabbitmq:15672/api/healthchecks/node; do echo waiting for rabbitmq; sleep 2; done;']
+      containers:
+        - name: image-service
+          image: intellijideaultimate-image_service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3003
+          env:
+            - name: DATABASE_HOST
+              value: "postgres-image"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              value: "postgres"
+            - name: DATABASE_PASSWORD
+              value: "mysecretpassword"
+            - name: DATABASE_NAME
+              value: "imagedb"
+            - name: RABBITMQ_PORT ## Evita a env criada automaticamente pelo kubernetes
+              value: "5672"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-service
+spec:
+  selector:
+    app: image-service
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003
+      nodePort: 30003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-image
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-image
+  template:
+    metadata:
+      labels:
+        app: postgres-image
+    spec:
+      containers:
+        - name: postgres-image
+          image: intellijideaultimate-postgres_image:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "mysecretpassword"
+            - name: POSTGRES_DB
+              value: "imagedb"
+          volumeMounts:
+            - name: pgdata-image
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+      volumes:
+        - name: pgdata-image
+          persistentVolumeClaim:
+            claimName: pgdata-image-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-image
+spec:
+  selector:
+    app: postgres-image
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 30436
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgdata-image-pvc
+spec:
+  volumeName: pgdata-image-pv
+  storageClassName: "" # Necessario para evitar a classe padrao 'hostpath'
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+##################################################################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management
+          ports:
+            - containerPort: 5672  # Porta de comunicação do RabbitMQ
+            - containerPort: 15672 # Porta da interface de gerenciamento
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: rabbitmq
+            - name: RABBITMQ_DEFAULT_PASS
+              value: rabbitmq
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmqctl
+                - status
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - rabbitmqctl
+                - status
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+    - name: management
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+  type: ClusterIP

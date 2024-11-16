@@ -1,0 +1,79 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "IntelliJ",
+    "collectionId": "865b8cab-fe73-45ba-bbd8-c4f81790c745",
+    "dateExported": "2024-05-28T05:17:24.106Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "fcc7ce9a-3a67-4abb-aee6-9308683fd3ff",
+            "colId": "865b8cab-fe73-45ba-bbd8-c4f81790c745",
+            "containerId": "",
+            "name": "Register user",
+            "url": "http://localhost:2000/register",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2024-05-28T01:34:56.883Z",
+            "modified": "2024-05-28T01:57:23.238Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"new_username\":\"a\",\n  \"new_password\":\"1\"\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "d78cbb9c-a8f9-45d3-ba4a-6d986647ad7d",
+            "colId": "865b8cab-fe73-45ba-bbd8-c4f81790c745",
+            "containerId": "",
+            "name": "Login",
+            "url": "http://localhost:1000/validate",
+            "method": "POST",
+            "sortNum": 20000,
+            "created": "2024-05-28T03:14:35.855Z",
+            "modified": "2024-05-28T03:17:21.554Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\":\"a\",\n  \"password\":\"1\"\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "9faef9a7-9cdf-454c-920c-e62019629c5c",
+            "colId": "865b8cab-fe73-45ba-bbd8-c4f81790c745",
+            "containerId": "",
+            "name": "serviceDiscovery",
+            "url": "http://localhost:10000/service-discovery",
+            "method": "POST",
+            "sortNum": 30000,
+            "created": "2024-05-28T04:04:32.864Z",
+            "modified": "2024-05-28T04:58:08.363Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"service_name\":\"AuthService\",\n  \"host\":\"localhost\",\n  \"port\":1000\n}",
+                "form": []
+            }
+        },
+        {
+            "_id": "b4445a47-cd6d-4e62-829f-95e3ddf797a3",
+            "colId": "865b8cab-fe73-45ba-bbd8-c4f81790c745",
+            "containerId": "",
+            "name": "serviceDiscovery Copy",
+            "url": "http://localhost:10000/service-discovery",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2024-05-28T04:57:52.907Z",
+            "modified": "2024-05-28T04:58:26.564Z",
+            "headers": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"service_name\":\"RegisterUserService\",\n  \"host\":\"localhost\",\n  \"port\":2000\n}",
+                "form": []
+            }
+        }
+    ],
+    "ref": "qCvNSu9fLlL4fiU1G_Vl__9qe40QZLF3X-nEeZftjwkMOAU4fgtOiefFxP8LmytO-Lo19KVMTEdO6BC88d5rBQ"
+}
